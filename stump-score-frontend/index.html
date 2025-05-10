@@ -1,0 +1,403 @@
+<!-- StumpScore Main Page | Cleaned and documented for maintainability and accessibility -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StumpScore</title>
+    <!-- Tailwind CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 min-h-screen">
+    <!-- Top Navbar -->
+    <nav class="bg-blue-700 dark:bg-gray-800 px-8 py-4 rounded-b-xl shadow-lg flex items-center justify-between mb-2 flex-wrap">
+        <div class="flex items-center mr-8">
+            <span class="font-extrabold text-3xl text-white tracking-wide select-none">stump<span class="text-yellow-300">score</span></span>
+        </div>
+        <div class="flex flex-row flex-1 items-center justify-center gap-6 flex-wrap">
+            <a href="#" class="text-white text-lg font-medium hover:text-yellow-300 transition">Live Scores</a>
+            <a href="#" class="text-white text-lg font-medium hover:text-yellow-300 transition">Schedule</a>
+            <a href="#" class="text-white text-lg font-medium hover:text-yellow-300 transition">News</a>
+            <a href="#" class="text-white text-lg font-medium hover:text-yellow-300 transition">Series</a>
+            <button id="teamsModalBtn" class="text-white text-lg font-medium hover:text-yellow-300 transition">Teams</button>
+            <a href="#" class="text-white text-lg font-medium hover:text-yellow-300 transition">Rankings</a>
+            <a href="#" class="text-white text-lg font-medium hover:text-yellow-300 transition">More</a>
+            <a href="login.html" class="bg-white text-blue-700 px-4 py-1.5 rounded font-semibold hover:bg-yellow-300 hover:text-blue-900 transition ml-4">Login</a>
+            <a href="signup.html" class="bg-yellow-300 text-blue-900 px-4 py-1.5 rounded font-semibold hover:bg-white hover:text-blue-700 transition">Signup</a>
+            <button id="profileBtn" class="hidden ml-2 rounded-full bg-white p-1 hover:bg-yellow-300" title="Profile">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-8 h-8 text-blue-700">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none" />
+                    <circle cx="12" cy="10" r="3" stroke="currentColor" stroke-width="2" fill="none" />
+                    <path stroke="currentColor" stroke-width="2" d="M6 18c0-3 12-3 12 0" fill="none" />
+                </svg>
+            </button>
+            <!-- Dark Mode Toggle -->
+            <button id="darkModeToggle" class="ml-4 p-2 rounded-full bg-blue-800 hover:bg-blue-900 focus:outline-none" title="Toggle dark mode">
+                <svg id="moonIcon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z" />
+                </svg>
+                <svg id="sunIcon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-300 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="2" fill="none" />
+                  <path stroke="currentColor" stroke-width="2" d="M12 1v2m0 16v2m8.66-10h-2M4.34 12H2m15.07 7.07l-1.41-1.41M6.34 6.34L4.93 4.93m12.02 0l-1.41 1.41M6.34 17.66l-1.41 1.41" />
+                </svg>
+            </button>
+            <!-- Profile Button -->
+            <button id="profileNavBtn" class="ml-2 p-2 rounded-full bg-green-600 hover:bg-green-700 focus:outline-none" title="Profile">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-7 h-7 text-white">
+                  <circle cx="12" cy="10" r="3" stroke="currentColor" stroke-width="2" fill="none" />
+                  <path stroke="currentColor" stroke-width="2" d="M6 18c0-3 12-3 12 0" fill="none" />
+                </svg>
+            </button>
+            <script>
+            document.getElementById('profileNavBtn').onclick = function() { window.location.href = 'profile.html'; };
+            </script>
+        </div>
+    </nav>
+
+<!-- Teams Modal -->
+<div id="teamsModal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-md relative overflow-y-auto max-h-[90vh]">
+    <button id="closeTeamsModal" class="absolute top-2 right-2 text-gray-600 dark:text-gray-200 hover:text-red-600 text-2xl">&times;</button>
+    <div id="teamTypeView">
+      <h2 class="text-xl font-bold mb-4 text-gray-900 dark:text-white">Select Match Type</h2>
+      <select id="modalMatchType" class="w-full p-2 border rounded mb-4">
+        <option value="">Choose type</option>
+        <option value="IPL">IPL</option>
+        <option value="ICC">ICC</option>
+        <option value="Test">Test</option>
+        <option value="ODI">ODI</option>
+      </select>
+      <div id="modalTeamsList" class="mt-2"></div>
+    </div>
+    <div id="teamPlayersView" class="hidden">
+      <button id="backToTeams" class="text-blue-600 dark:text-blue-400 mb-4 flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        Back to Teams
+      </button>
+      <h2 id="teamNameHeader" class="text-xl font-bold mb-4 text-gray-900 dark:text-white"></h2>
+      <div id="teamPlayersTable" class="w-full"></div>
+    </div>
+  </div>
+</div>
+
+
+    <!-- Matches Ticker -->
+    <div class="bg-blue-800 dark:bg-gray-700 text-white py-2 px-4 flex overflow-x-auto whitespace-nowrap text-sm">
+        <span class="mr-4 font-semibold">MATCHES</span>
+        <div id="ticker-matches" class="flex space-x-6"></div>
+    </div>
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto mt-6 grid grid-cols-1 md:grid-cols-3 gap-8 px-4">
+      <!-- Main Section: Matches -->
+      <div class="md:col-span-2 flex flex-col gap-6">
+        <!-- LIVE Matches -->
+        <div class="bg-white rounded-xl shadow p-6">
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Live Matches</h2>
+          <div id="live-matches" class="grid grid-cols-1 lg:grid-cols-2 gap-6"></div>
+        </div>
+        <!-- UPCOMING Matches -->
+        <div class="bg-white rounded-xl shadow p-6">
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Upcoming</h2>
+          <div id="upcoming-matches" class="grid grid-cols-1 lg:grid-cols-2 gap-6"></div>
+        </div>
+        <!-- RECENT Matches -->
+        <div class="bg-white rounded-xl shadow p-6">
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Recent</h2>
+          <div id="recent-matches" class="grid grid-cols-1 lg:grid-cols-2 gap-6"></div>
+        </div>
+      </div>
+      <!-- Sidebar Section -->
+      <div class="flex flex-col gap-6">
+        <!-- Top Performers (placeholder, can be dynamic if data available) -->
+        <div class="bg-white rounded-xl shadow p-6">
+          <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Top Performers</h2>
+          <div id="top-performers" class="flex flex-col gap-4">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-lg font-bold text-blue-700">?</div>
+              <div>
+                <div class="font-semibold dark:text-white">No Data</div>
+                <div class="text-xs text-gray-400 dark:text-gray-300">Upgrade API for stats</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- News -->
+        <div class="bg-white rounded-xl shadow p-6">
+          <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Latest News</h2>
+          <ul id="latest-news-list" class="space-y-4"></ul>
+        </div>
+      </div>
+    </div>
+    <div class="mt-8 text-center text-xs text-gray-400 dark:text-gray-300">
+        Powered by Free Cricket API | &copy; 2025 StumpScore
+    </div>
+    <script type="module" src="main.js"></script>
+    <script type="module" src="auth.js"></script>
+    <script src="news.js"></script>
+    <script>
+    // Show profile icon only if user is logged in
+    document.addEventListener('DOMContentLoaded', function() {
+        const profileBtn = document.getElementById('profileBtn');
+        try {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (user) {
+                profileBtn.classList.remove('hidden');
+                profileBtn.addEventListener('click', () => {
+                    window.location.href = 'dashboard.html';
+                });
+            }
+        } catch {}
+    });
+    </script>
+    <script>
+    // Populate ticker-matches with a summary from live scores
+    async function updateTickerMatches() {
+        try {
+            const API_KEY = 'ad5f9cfb5eee9e5eaa99379a271be7b609d0e7c163bbb83935525038c0114945';
+            const API_URL = 'https://api.cricapi.com/v1/currentMatches?apikey=' + API_KEY + '&offset=0';
+            const response = await fetch(API_URL);
+            const data = await response.json();
+            const ticker = document.getElementById('ticker-matches');
+            if (data.status === "success" && data.data && data.data.length > 0) {
+                ticker.innerHTML = '';
+                data.data.slice(0, 8).forEach(match => {
+                    const el = document.createElement('span');
+                    el.className = 'mr-6';
+                    el.innerHTML = `<span class='font-bold'>${match.teams[0]}</span> vs <span class='font-bold'>${match.teams[1]}</span> <span class='text-yellow-300'>${match.status}</span>`;
+                    ticker.appendChild(el);
+                });
+            } else {
+                ticker.innerHTML = '<span>No matches found.</span>';
+            }
+        } catch (e) {
+            document.getElementById('ticker-matches').innerHTML = '<span>Error loading matches.</span>';
+        }
+    }
+    updateTickerMatches();
+    </script>
+<script>
+// Dark mode toggle logic
+const htmlEl = document.documentElement;
+const darkModeToggle = document.getElementById('darkModeToggle');
+const moonIcon = document.getElementById('moonIcon');
+const sunIcon = document.getElementById('sunIcon');
+
+function setDarkMode(isDark) {
+    if (isDark) {
+        htmlEl.classList.add('dark');
+        moonIcon.classList.add('hidden');
+        sunIcon.classList.remove('hidden');
+        localStorage.setItem('theme', 'dark');
+    } else {
+        htmlEl.classList.remove('dark');
+        moonIcon.classList.remove('hidden');
+        sunIcon.classList.add('hidden');
+        localStorage.setItem('theme', 'light');
+    }
+}
+
+// Load theme from localStorage
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme === 'dark') setDarkMode(true);
+else setDarkMode(false);
+
+darkModeToggle.addEventListener('click', () => {
+    setDarkMode(!htmlEl.classList.contains('dark'));
+});
+</script>
+<script>
+// Demo: match data
+const modalMatches = [
+  { type: 'IPL', teams: [
+    'CSK', 'MI', 'RCB', 'KKR', 'SRH', 'DC', 'RR', 'PBKS', 'LSG', 'GT'
+  ] },
+  { type: 'ICC', teams: [
+    'India', 'Australia', 'England', 'Pakistan', 'New Zealand', 'South Africa', 'Sri Lanka', 'Bangladesh', 'Afghanistan', 'West Indies', 'Zimbabwe', 'Ireland', 'Netherlands', 'Scotland', 'UAE', 'Oman', 'Namibia', 'Nepal', 'USA', 'PNG'
+  ] },
+  { type: 'Test', teams: [
+    'India', 'Australia', 'England', 'Pakistan', 'New Zealand', 'South Africa', 'Sri Lanka', 'Bangladesh', 'West Indies', 'Zimbabwe', 'Afghanistan', 'Ireland'
+  ] },
+  { type: 'ODI', teams: [
+    'India', 'Australia', 'England', 'Pakistan', 'New Zealand', 'South Africa', 'Sri Lanka', 'Bangladesh', 'Afghanistan', 'West Indies', 'Zimbabwe', 'Ireland', 'Netherlands', 'Scotland', 'UAE', 'Oman', 'Namibia', 'Nepal', 'USA', 'PNG'
+  ] }
+];
+
+const teamsModalBtn = document.getElementById('teamsModalBtn');
+const teamsModal = document.getElementById('teamsModal');
+const closeTeamsModal = document.getElementById('closeTeamsModal');
+const modalMatchType = document.getElementById('modalMatchType');
+const modalTeamsList = document.getElementById('modalTeamsList');
+
+teamsModalBtn.onclick = () => {
+  teamsModal.classList.remove('hidden');
+  modalMatchType.value = '';
+  modalTeamsList.innerHTML = '';
+};
+closeTeamsModal.onclick = () => {
+  teamsModal.classList.add('hidden');
+};
+// Sample player data for teams
+const teamPlayers = {
+  'India': [
+    { name: 'Rohit Sharma', role: 'Captain', type: 'Batsman' },
+    { name: 'Hardik Pandya', role: 'Vice-Captain', type: 'All-rounder' },
+    { name: 'Virat Kohli', role: 'Batsman', type: 'Batsman' },
+    { name: 'Jasprit Bumrah', role: 'Bowler', type: 'Bowler' },
+    { name: 'KL Rahul', role: 'Wicket-keeper', type: 'Batsman' },
+    { name: 'Ravindra Jadeja', role: 'All-rounder', type: 'All-rounder' },
+    { name: 'Shubman Gill', role: 'Batsman', type: 'Batsman' },
+    { name: 'Kuldeep Yadav', role: 'Bowler', type: 'Bowler' },
+    { name: 'Mohammed Siraj', role: 'Bowler', type: 'Bowler' },
+    { name: 'Shreyas Iyer', role: 'Batsman', type: 'Batsman' },
+    { name: 'Rishabh Pant', role: 'Wicket-keeper', type: 'Batsman' }
+  ],
+  'Australia': [
+    { name: 'Pat Cummins', role: 'Captain', type: 'Bowler' },
+    { name: 'Steve Smith', role: 'Vice-Captain', type: 'Batsman' },
+    { name: 'David Warner', role: 'Batsman', type: 'Batsman' },
+    { name: 'Mitchell Starc', role: 'Bowler', type: 'Bowler' },
+    { name: 'Josh Hazlewood', role: 'Bowler', type: 'Bowler' },
+    { name: 'Glenn Maxwell', role: 'All-rounder', type: 'All-rounder' },
+    { name: 'Alex Carey', role: 'Wicket-keeper', type: 'Batsman' },
+    { name: 'Mitchell Marsh', role: 'All-rounder', type: 'All-rounder' },
+    { name: 'Travis Head', role: 'Batsman', type: 'Batsman' },
+    { name: 'Nathan Lyon', role: 'Bowler', type: 'Bowler' },
+    { name: 'Marnus Labuschagne', role: 'Batsman', type: 'Batsman' }
+  ],
+  'CSK': [
+    { name: 'MS Dhoni', role: 'Captain', type: 'Wicket-keeper' },
+    { name: 'Ravindra Jadeja', role: 'Vice-Captain', type: 'All-rounder' },
+    { name: 'Ruturaj Gaikwad', role: 'Batsman', type: 'Batsman' },
+    { name: 'Deepak Chahar', role: 'Bowler', type: 'Bowler' },
+    { name: 'Moeen Ali', role: 'All-rounder', type: 'All-rounder' },
+    { name: 'Ambati Rayudu', role: 'Batsman', type: 'Batsman' },
+    { name: 'Dwayne Bravo', role: 'All-rounder', type: 'All-rounder' },
+    { name: 'Shivam Dube', role: 'All-rounder', type: 'All-rounder' },
+    { name: 'Mitchell Santner', role: 'All-rounder', type: 'All-rounder' },
+    { name: 'Devon Conway', role: 'Batsman', type: 'Batsman' },
+    { name: 'Tushar Deshpande', role: 'Bowler', type: 'Bowler' }
+  ],
+  'MI': [
+    { name: 'Rohit Sharma', role: 'Captain', type: 'Batsman' },
+    { name: 'Jasprit Bumrah', role: 'Vice-Captain', type: 'Bowler' },
+    { name: 'Suryakumar Yadav', role: 'Batsman', type: 'Batsman' },
+    { name: 'Ishan Kishan', role: 'Wicket-keeper', type: 'Batsman' },
+    { name: 'Kieron Pollard', role: 'All-rounder', type: 'All-rounder' },
+    { name: 'Hardik Pandya', role: 'All-rounder', type: 'All-rounder' },
+    { name: 'Krunal Pandya', role: 'All-rounder', type: 'All-rounder' },
+    { name: 'Trent Boult', role: 'Bowler', type: 'Bowler' },
+    { name: 'Quinton de Kock', role: 'Wicket-keeper', type: 'Batsman' },
+    { name: 'Rahul Chahar', role: 'Bowler', type: 'Bowler' },
+    { name: 'Arjun Tendulkar', role: 'All-rounder', type: 'All-rounder' }
+  ]
+};
+
+// Default player data for teams without specific data
+const defaultPlayers = [
+  { name: 'Player 1', role: 'Captain', type: 'Batsman' },
+  { name: 'Player 2', role: 'Vice-Captain', type: 'All-rounder' },
+  { name: 'Player 3', role: 'Batsman', type: 'Batsman' },
+  { name: 'Player 4', role: 'Bowler', type: 'Bowler' },
+  { name: 'Player 5', role: 'Wicket-keeper', type: 'Batsman' },
+  { name: 'Player 6', role: 'All-rounder', type: 'All-rounder' },
+  { name: 'Player 7', role: 'Batsman', type: 'Batsman' },
+  { name: 'Player 8', role: 'Bowler', type: 'Bowler' },
+  { name: 'Player 9', role: 'Bowler', type: 'Bowler' },
+  { name: 'Player 10', role: 'Batsman', type: 'Batsman' },
+  { name: 'Player 11', role: 'All-rounder', type: 'All-rounder' }
+];
+
+modalMatchType.onchange = function() {
+  const type = this.value;
+  const match = modalMatches.find(m => m.type === type);
+  if (!type) {
+    modalTeamsList.innerHTML = '';
+    return;
+  }
+  if (!match || !match.teams.length) {
+    modalTeamsList.innerHTML = '<div class="text-gray-500">No teams found for this match type.</div>';
+    return;
+  }
+  
+  // Show teams as clickable buttons
+  const teamsContainer = document.createElement('div');
+  teamsContainer.className = 'flex flex-wrap gap-2';
+  
+  match.teams.forEach(team => {
+    const teamBtn = document.createElement('button');
+    teamBtn.textContent = team;
+    teamBtn.className = 'px-3 py-2 rounded bg-gray-200 hover:bg-blue-200 dark:bg-gray-600 dark:hover:bg-blue-700 text-gray-900 dark:text-white font-semibold';
+    teamBtn.onclick = function() {
+      showTeamPlayers(team);
+    };
+    teamsContainer.appendChild(teamBtn);
+  });
+  
+  modalTeamsList.innerHTML = '<div class="mb-2 font-semibold">Teams participating:</div>';
+  modalTeamsList.appendChild(teamsContainer);
+};
+
+// Function to show team players
+function showTeamPlayers(teamName) {
+  // Switch to player view
+  document.getElementById('teamTypeView').classList.add('hidden');
+  document.getElementById('teamPlayersView').classList.remove('hidden');
+  
+  // Set team name in header
+  document.getElementById('teamNameHeader').textContent = teamName + ' Squad';
+  
+  // Get players for the team (use default if not found)
+  const players = teamPlayers[teamName] || defaultPlayers;
+  
+  // Create table with players
+  const table = document.createElement('table');
+  table.className = 'w-full border-collapse';
+  
+  // Table header
+  const thead = document.createElement('thead');
+  thead.innerHTML = `
+    <tr class="bg-gray-100 dark:bg-gray-700">
+      <th class="py-2 px-3 text-left border-b dark:border-gray-600">Player</th>
+      <th class="py-2 px-3 text-left border-b dark:border-gray-600">Role</th>
+      <th class="py-2 px-3 text-left border-b dark:border-gray-600">Type</th>
+    </tr>
+  `;
+  table.appendChild(thead);
+  
+  // Table body
+  const tbody = document.createElement('tbody');
+  players.forEach(player => {
+    const tr = document.createElement('tr');
+    tr.className = 'border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800';
+    
+    // Highlight captain and vice-captain
+    const nameClass = player.role === 'Captain' ? 'font-bold text-blue-700 dark:text-blue-400' : 
+                     player.role === 'Vice-Captain' ? 'font-semibold text-green-700 dark:text-green-400' : 
+                     'text-gray-800 dark:text-gray-200';
+    
+    tr.innerHTML = `
+      <td class="py-2 px-3 ${nameClass}">${player.name}</td>
+      <td class="py-2 px-3 text-gray-800 dark:text-gray-200">${player.role}</td>
+      <td class="py-2 px-3 text-gray-800 dark:text-gray-200">${player.type}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+  
+  // Add table to container
+  const container = document.getElementById('teamPlayersTable');
+  container.innerHTML = '';
+  container.appendChild(table);
+}
+
+// Back button functionality
+document.getElementById('backToTeams').addEventListener('click', function() {
+  document.getElementById('teamTypeView').classList.remove('hidden');
+  document.getElementById('teamPlayersView').classList.add('hidden');
+});
+
+</script>
+</body>
+</html>

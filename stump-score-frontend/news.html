@@ -1,0 +1,38 @@
+<!-- News Article Page | Cleaned and documented for maintainability and accessibility -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News Article - StumpScore</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center">
+    <nav class="bg-blue-700 px-8 py-4 rounded-b-xl shadow-lg flex flex-col md:flex-row md:items-center md:justify-between mb-2 w-full max-w-5xl mx-auto">
+        <div class="flex items-center mb-2 md:mb-0">
+            <a href="index.html" class="font-extrabold text-3xl text-white tracking-wide mr-8 select-none">stump<span class="text-yellow-300">score</span></a>
+        </div>
+        <div class="flex-1 flex flex-wrap justify-center gap-4 md:gap-8 mb-2 md:mb-0">
+            <a href="index.html" class="text-white text-lg font-medium hover:text-yellow-300 transition">Live Scores</a>
+            <a href="#" class="text-white text-lg font-medium hover:text-yellow-300 transition">Schedule</a>
+            <a href="#" class="text-white text-lg font-medium hover:text-yellow-300 transition">News</a>
+            <a href="#" class="text-white text-lg font-medium hover:text-yellow-300 transition">Series</a>
+            <a href="#" class="text-white text-lg font-medium hover:text-yellow-300 transition">Teams</a>
+            <a href="#" class="text-white text-lg font-medium hover:text-yellow-300 transition">Rankings</a>
+            <a href="#" class="text-white text-lg font-medium hover:text-yellow-300 transition">More</a>
+        </div>
+        <div class="flex items-center space-x-2 md:space-x-4 justify-center">
+            <a href="login.html" class="bg-white text-blue-700 px-4 py-1.5 rounded font-semibold hover:bg-yellow-300 hover:text-blue-900 transition">Login</a>
+            <a href="signup.html" class="bg-yellow-300 text-blue-900 px-4 py-1.5 rounded font-semibold hover:bg-white hover:text-blue-700 transition">Signup</a>
+        </div>
+    </nav>
+    <main class="w-full max-w-3xl mx-auto mt-8 bg-white rounded shadow p-8">
+        <h1 id="news-title" class="text-2xl font-bold mb-4 text-blue-800"></h1>
+        <div id="news-meta" class="mb-4 text-sm text-gray-500"></div>
+        <img id="news-image" src="" alt="News Image" class="rounded mb-4 w-full max-h-96 object-cover hidden">
+        <div id="news-content" class="text-lg text-gray-800"></div>
+        <a id="news-source" href="#" target="_blank" class="block mt-6 text-blue-600 hover:underline text-sm">Read full article at source</a>
+    </main>
+    <script src="news-article.js"></script>
+</body>
+</html>

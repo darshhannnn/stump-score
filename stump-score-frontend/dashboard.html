@@ -1,0 +1,54 @@
+<!-- User Dashboard Page | Cleaned and documented for maintainability and accessibility -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard - StumpScore</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center">
+    <nav class="w-full max-w-2xl mx-auto flex justify-between items-center py-4 px-6 bg-white rounded-lg shadow-md mt-6 mb-4">
+        <a href="index.html" class="font-extrabold text-xl text-green-600">StumpScore</a>
+        <div class="space-x-4 flex items-center">
+            <a href="index.html" class="text-gray-700 hover:text-green-600">Home</a>
+            <a href="dashboard.html" class="text-gray-700 hover:text-green-600">Dashboard</a>
+            <a href="login.html" class="text-gray-700 hover:text-green-600">Login</a>
+            <a href="signup.html" class="text-gray-700 hover:text-green-600">Signup</a>
+            <div class="relative inline-block text-left" id="profileDropdownContainer">
+                <button id="profileDropdownBtn" class="flex items-center px-3 py-2 rounded-full bg-green-600 hover:bg-green-700 text-white focus:outline-none" title="Profile">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-7 h-7 text-white mr-2">
+                        <circle cx="12" cy="10" r="3" stroke="currentColor" stroke-width="2" fill="none" />
+                        <path stroke="currentColor" stroke-width="2" d="M6 18c0-3 12-3 12 0" fill="none" />
+                    </svg>
+                    <span id="profileDropdownName" class="hidden sm:inline"></span>
+                </button>
+                <div id="profileDropdownMenu" class="hidden absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
+                    <div class="py-2 px-4 border-b">
+                        <div class="font-semibold" id="dropdownUserName"></div>
+                        <div class="text-sm text-gray-600" id="dropdownUserEmail"></div>
+                    </div>
+                    <button id="resetPasswordBtn" class="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">Reset Password</button>
+                    <button id="logoutBtn" class="block w-full text-left px-4 py-2 text-red-600 hover:bg-red-100">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <div class="w-full max-w-2xl mx-auto p-8 bg-white rounded-lg shadow-md">
+        <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center">
+                <img src="https://i.ibb.co/2kRjJ4c/bluestock-logo.png" alt="StumpScore Logo" class="h-8 mr-2">
+                <span class="font-extrabold text-2xl text-green-600">STUMPSCORE</span>
+            </div>
+            <button id="logoutBtn" class="text-red-500 hover:underline">Logout</button>
+        </div>
+        <h2 class="text-xl font-bold mb-4">Personal Dashboard</h2>
+        <div id="user-details" class="mb-6"></div>
+        <div class="flex flex-col space-y-4">
+            <a href="#" id="forgotPassword" class="text-blue-600 hover:underline self-start">Forgot Password?</a>
+            <button id="deleteAccountBtn" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700 w-fit">Delete Account</button>
+        </div>
+    </div>
+    <script src="dashboard.js"></script>
+</body>
+</html>

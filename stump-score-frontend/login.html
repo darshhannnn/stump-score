@@ -1,0 +1,57 @@
+<!-- Login Page | Cleaned and documented for maintainability and accessibility -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In - StumpScore</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-900 min-h-screen flex flex-col items-center justify-center">
+    <nav class="w-full max-w-md mx-auto flex justify-between items-center py-4 px-6 bg-white rounded-lg shadow-md mt-6 mb-4">
+        <a href="index.html" class="font-extrabold text-xl text-green-600">StumpScore</a>
+        <div class="space-x-4">
+            <a href="index.html" class="text-gray-700 hover:text-green-600">Home</a>
+            <a href="login.html" class="text-gray-700 hover:text-green-600">Login</a>
+            <a href="signup.html" class="text-gray-700 hover:text-green-600">Signup</a>
+        </div>
+    </nav>
+    <div class="w-full max-w-md mx-auto p-8 bg-white rounded-lg shadow-md">
+        <div class="flex justify-center mb-6">
+            <img src="https://i.ibb.co/2kRjJ4c/StumpScore-logo.png" alt="StumpScore Logo" class="h-8 mr-2"><span class="font-extrabold text-2xl text-gray-800 self-center">STUMPSCORE</span>
+        </div>
+        <form class="space-y-4">
+            <div>
+                <label class="block text-gray-700">Email Address</label>
+                <input type="email" class="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-400" placeholder="john@stock.com" required>
+            </div>
+            <div>
+                <label class="block text-gray-700">Password <a href="#" class="float-right text-xs text-blue-400 hover:underline">Forgot Password?</a></label>
+                <input type="password" class="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-400" placeholder="********" required>
+            </div>
+            <div class="flex items-center">
+                <input type="checkbox" class="mr-2">
+                <span class="text-sm text-gray-600">I'm not a robot</span>
+                <span class="ml-auto"><img src="https://www.gstatic.com/recaptcha/api2/logo_48.png" alt="reCAPTCHA" class="h-5 inline"></span>
+            </div>
+            <div class="flex items-center">
+                <input type="checkbox" id="keep-signed-in" class="mr-2">
+                <label for="keep-signed-in" class="text-sm text-gray-600">Keep me signed in</label>
+            </div>
+            <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-2 rounded hover:bg-blue-700 transition">Login</button>
+            <div class="flex items-center my-2">
+                <div class="flex-grow h-px bg-gray-300"></div>
+                <span class="mx-2 text-xs text-gray-400">or sign in with</span>
+                <div class="flex-grow h-px bg-gray-300"></div>
+            </div>
+            <button type="button" class="w-full flex items-center justify-center border border-gray-300 py-2 rounded hover:bg-gray-100 transition">
+                <img src="https://www.svgrepo.com/show/355037/google.svg" alt="Google" class="h-5 mr-2">Continue with Google
+            </button>
+            <div class="text-center mt-4">
+                <a href="signup.html" class="text-blue-500 text-xs hover:underline">Create an account</a>
+            </div>
+        </form>
+    </div>
+    <script src="login.js"></script>
+</body>
+</html>
