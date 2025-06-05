@@ -1,0 +1,16 @@
+StumpScore Local Authentication Test - 2025-06-02T12:54:07.667Z
+
+[2025-06-02T12:54:07.673Z] [34mℹ Starting StumpScore Authentication Tests with Local MongoDB[0m
+[2025-06-02T12:54:07.676Z] ----------------------------------------
+[2025-06-02T12:54:08.265Z] [34mℹ Starting MongoDB Memory Server at mongodb://127.0.0.1:54772/[0m
+[2025-06-02T12:54:08.294Z] [32m✓ MongoDB Connection[0m: Connected to in-memory MongoDB
+[2025-06-02T12:54:08.308Z] [32m✓ Express Server[0m: Server running on port 5555
+[2025-06-02T12:54:09.348Z] [32m✓ Server Connection[0m: API is responsive
+[2025-06-02T12:54:09.498Z] [32m✓ User Registration[0m: User created with ID: 683d9ef1511103c43c4b66d3
+[2025-06-02T12:54:09.595Z] [32m✓ User Login[0m: Login successful
+[2025-06-02T12:54:09.603Z] [32m✓ Token Validation[0m: Token is valid and user profile was retrieved
+[2025-06-02T12:54:09.609Z] [32m✓ Invalid Token Rejection[0m: Server correctly rejected invalid token
+[2025-06-02T12:54:09.812Z] [32m✓ Google Authentication[0m: Google user created and authenticated successfully
+[2025-06-02T12:54:09.813Z] ----------------------------------------
+[2025-06-02T12:54:09.814Z] [32m✓ All Tests[0m: All authentication tests passed successfully!
+[2025-06-02T12:54:09.878Z] [34mℹ Test results saved to: E:\darshan\S6\software engineering\Project\stumpscore\tests\local_auth_test.log[0m

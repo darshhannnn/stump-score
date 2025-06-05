@@ -1,0 +1,111 @@
+/* Premium Page Animations */
+
+/* Basic fade in */
+.fade-in {
+  animation: fadeIn 0.8s ease forwards;
+  animation-delay: 0.4s;
+  opacity: 0;
+}
+
+/* Fade in from bottom */
+.fade-in-up {
+  animation: fadeInUp 0.8s ease forwards;
+  opacity: 0;
+}
+
+/* Fade in from top */
+.fade-in-down {
+  animation: fadeInDown 0.8s ease forwards;
+  animation-delay: 0.2s;
+  opacity: 0;
+}
+
+/* Scale in */
+.fade-in-scale {
+  animation: fadeInScale 0.8s ease forwards;
+  animation-delay: 1s;
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+/* Staggered children container */
+.fade-in-stagger {
+  animation: fadeIn 0.5s ease forwards;
+  opacity: 0;
+}
+
+/* Staggered item children */
+.fade-in-item {
+  animation: fadeInUp 0.6s ease forwards;
+  opacity: 0;
+}
+
+/* Delay utilities */
+.delay-800 {
+  animation-delay: 0.8s !important;
+}
+
+.delay-1000 {
+  animation-delay: 1s !important;
+}
+
+.delay-1200 {
+  animation-delay: 1.2s !important;
+}
+
+.delay-1400 {
+  animation-delay: 1.4s !important;
+}
+
+/* Keyframes definitions */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Custom transition for prediction chart bars */
+.transition-all.duration-1500 {
+  transition-duration: 1500ms;
+}
+
+/* Add hover effect for pricing cards */
+.hover\:-translate-y-1:hover {
+  transform: translateY(-4px);
+}
+
+.hover\:shadow-xl:hover {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}

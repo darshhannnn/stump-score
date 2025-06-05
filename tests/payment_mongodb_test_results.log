@@ -1,0 +1,44 @@
+StumpScore Payment & MongoDB Tests - 2025-06-02T13:29:38.405Z
+
+[2025-06-02T13:29:38.407Z] 
+[1m[36mSTUMPSCORE PAYMENT & MONGODB INTEGRATION TEST[0m
+
+[2025-06-02T13:29:38.409Z] [34mℹ Attempting to connect to MongoDB Atlas...[0m
+[2025-06-02T13:29:38.430Z] [33m⚠ Could not connect to MongoDB Atlas: querySrv ENOTFOUND _mongodb._tcp.cluster0.mongodb.atlas.com[0m
+[2025-06-02T13:29:38.431Z] [34mℹ Falling back to local MongoDB instance...[0m
+[2025-06-02T13:29:38.998Z] [32m✓ MongoDB Connection[0m: Connected to local MongoDB: mongodb://127.0.0.1:57546/
+[2025-06-02T13:29:39.016Z] -------------------------------------------------------
+[2025-06-02T13:29:39.016Z] [34mℹ TEST 1: Creating test user for payment flow[0m
+[2025-06-02T13:29:39.076Z] [32m✓ User Creation[0m: Created user with ID: 683da743c2bee409d8246e58
+[2025-06-02T13:29:39.077Z] -------------------------------------------------------
+[2025-06-02T13:29:39.077Z] [34mℹ TEST 2: Creating a subscription order[0m
+[2025-06-02T13:29:39.078Z] [34mℹ Selected plan: Quarterly Premium (499 INR)[0m
+[2025-06-02T13:29:39.083Z] [32m✓ MongoDB Order[0m: Saved order in database with ID: 683da743c2bee409d8246e5b
+[2025-06-02T13:29:39.084Z] -------------------------------------------------------
+[2025-06-02T13:29:39.084Z] [34mℹ TEST 3: Processing payment[0m
+[2025-06-02T13:29:39.097Z] [32m✓ Order Update[0m: Updated order status to: paid
+[2025-06-02T13:29:39.097Z] -------------------------------------------------------
+[2025-06-02T13:29:39.098Z] [34mℹ TEST 4: Updating user subscription status[0m
+[2025-06-02T13:29:39.103Z] [32m✓ User Subscription[0m: User premium status updated to: true
+[2025-06-02T13:29:39.104Z] [32m✓ Premium Expiry[0m: Expiry date set to: Sun Aug 31 2025 18:59:39 GMT+0530 (India Standard Time)
+[2025-06-02T13:29:39.104Z] -------------------------------------------------------
+[2025-06-02T13:29:39.105Z] [34mℹ TEST 5: Testing Google Auth User subscription flow[0m
+[2025-06-02T13:29:39.115Z] [32m✓ Google User[0m: Created and updated Google user with ID: 683da743c2bee409d8246e61
+[2025-06-02T13:29:39.116Z] [32m✓ Google Subscription[0m: Google user premium status: true
+[2025-06-02T13:29:39.116Z] -------------------------------------------------------
+[2025-06-02T13:29:39.116Z] [34mℹ TEST 6: Verifying payment history retrieval[0m
+[2025-06-02T13:29:39.122Z] [32m✓ Payment History[0m: Found 1 payment records for regular user
+[2025-06-02T13:29:39.125Z] [32m✓ Google Payment History[0m: Found 1 payment records for Google user
+[2025-06-02T13:29:39.126Z] -------------------------------------------------------
+[2025-06-02T13:29:39.126Z] 
+[1m[36mTEST SUMMARY[0m
+
+[2025-06-02T13:29:39.126Z] [33m⚠ Using local MongoDB instance instead of MongoDB Atlas[0m
+[2025-06-02T13:29:39.127Z] [34mℹ The local tests have passed, which verifies your code logic works correctly.[0m
+[2025-06-02T13:29:39.127Z] [34mℹ Once you fix your MongoDB Atlas connection string, the same code should work with Atlas.[0m
+[2025-06-02T13:29:39.127Z] [32m✓ Payment & Subscription Flow[0m: All payment and subscription tests passed
+[2025-06-02T13:29:39.128Z] [32m✓ User Management[0m: User subscription status updates working correctly
+[2025-06-02T13:29:39.128Z] [32m✓ Google Authentication[0m: Google Auth integration with subscriptions working correctly
+[2025-06-02T13:29:39.200Z] [34mℹ Test results saved to: E:\darshan\S6\software engineering\Project\stumpscore\tests\payment_mongodb_test_results.log[0m
+[2025-06-02T13:29:39.201Z] -------------------------------------------------------
+[2025-06-02T13:29:39.201Z] [1m[32m✓ PAYMENT & SUBSCRIPTION TESTS PASSED[0m

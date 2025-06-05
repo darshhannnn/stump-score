@@ -1,6 +1,40 @@
-# Getting Started with Create React App
+# StumpScore - Live Cricket Score Application
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+StumpScore is a modern web application that provides real-time cricket scores, match details, and statistics using React.js and Tailwind CSS. The application fetches live cricket data using a cricket API to display up-to-date information about ongoing matches.
+
+## Features
+
+- Real-time cricket scores and match updates
+- Detailed match information including player statistics
+- Live match status with run rates and required runs
+- Responsive design that works on desktop and mobile devices
+- Beautiful UI built with Tailwind CSS
+- Auto-refreshing data that updates every 30 seconds
+
+## API Integration
+
+StumpScore uses the Cricket API with the key `00ba4444-6577-435e-a241-02719e3c82e5` to fetch real-time cricket data. The API provides information about:
+
+- Current matches
+- Match details and scorecards
+- Player information
+- Team statistics
+
+## Project Structure
+
+```
+src/
+├── components/     # Reusable UI components
+├── pages/          # Application pages
+├── services/       # API services
+└── App.js          # Main application component
+```
+
+## Setup Instructions
+
+1. Clone the repository
+2. Install dependencies with `npm install`
+3. Start the development server with `npm start`
 
 ## Available Scripts
 

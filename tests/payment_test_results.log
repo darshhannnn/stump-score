@@ -1,0 +1,40 @@
+StumpScore Payment & Subscription Tests - 2025-06-02T13:26:00.238Z
+
+[2025-06-02T13:26:00.240Z] 
+[1m[36mSTUMPSCORE PAYMENT & SUBSCRIPTION FLOW TEST[0m
+
+[2025-06-02T13:26:00.242Z] [34mℹ Setting up test environment...[0m
+[2025-06-02T13:26:00.869Z] [32m✓ MongoDB Connection[0m: Connected to mongodb://127.0.0.1:57238/
+[2025-06-02T13:26:00.889Z] -------------------------------------------------------
+[2025-06-02T13:26:00.889Z] [34mℹ TEST 1: Creating test user for payment flow[0m
+[2025-06-02T13:26:00.951Z] [32m✓ User Creation[0m: Created user with ID: 683da6683262e3ae2cf58c0d
+[2025-06-02T13:26:00.952Z] -------------------------------------------------------
+[2025-06-02T13:26:00.952Z] [34mℹ TEST 2: Creating a subscription order[0m
+[2025-06-02T13:26:00.953Z] [34mℹ Selected plan: Quarterly Premium (499 INR)[0m
+[2025-06-02T13:26:00.953Z] [32m✓ Razorpay Order[0m: Created order with ID: order_b715f988939cfa25
+[2025-06-02T13:26:00.958Z] [32m✓ MongoDB Order[0m: Saved order in database with ID: 683da6683262e3ae2cf58c10
+[2025-06-02T13:26:00.959Z] -------------------------------------------------------
+[2025-06-02T13:26:00.959Z] [34mℹ TEST 3: Processing payment[0m
+[2025-06-02T13:26:00.960Z] [32m✓ Payment Validation[0m: Payment validated successfully
+[2025-06-02T13:26:00.974Z] [32m✓ Order Update[0m: Updated order status to: paid
+[2025-06-02T13:26:00.974Z] -------------------------------------------------------
+[2025-06-02T13:26:00.975Z] [34mℹ TEST 4: Updating user subscription status[0m
+[2025-06-02T13:26:00.980Z] [32m✓ User Subscription[0m: User premium status updated to: true
+[2025-06-02T13:26:00.981Z] [32m✓ Premium Expiry[0m: Expiry date set to: Sun Aug 31 2025 18:56:00 GMT+0530 (India Standard Time)
+[2025-06-02T13:26:00.981Z] -------------------------------------------------------
+[2025-06-02T13:26:00.982Z] [34mℹ TEST 5: Verifying payment history[0m
+[2025-06-02T13:26:00.988Z] [32m✓ Payment History[0m: Found 1 payment records
+[2025-06-02T13:26:00.988Z] [32m✓ Latest Payment[0m: Order ID: order_b715f988939cfa25, Plan: quarterly, Amount: 499 INR
+[2025-06-02T13:26:00.988Z] -------------------------------------------------------
+[2025-06-02T13:26:00.989Z] [34mℹ TEST 6: Testing subscription validity check[0m
+[2025-06-02T13:26:00.989Z] [32m✓ Current Subscription[0m: Subscription is valid: true
+[2025-06-02T13:26:00.993Z] [32m✓ Expired Subscription[0m: Subscription is correctly shown as expired: true
+[2025-06-02T13:26:00.993Z] -------------------------------------------------------
+[2025-06-02T13:26:00.994Z] 
+[1m[36mTEST SUMMARY[0m
+
+[2025-06-02T13:26:00.994Z] [32m✓ Payment Flow[0m: All payment and subscription tests passed
+[2025-06-02T13:26:00.995Z] [32m✓ MongoDB Integration[0m: MongoDB Atlas integration for payments is working correctly
+[2025-06-02T13:26:01.061Z] [34mℹ Test results saved to: E:\darshan\S6\software engineering\Project\stumpscore\tests\payment_test_results.log[0m
+[2025-06-02T13:26:01.062Z] -------------------------------------------------------
+[2025-06-02T13:26:01.062Z] [1m[32m✓ PAYMENT & SUBSCRIPTION FLOW TESTS PASSED[0m

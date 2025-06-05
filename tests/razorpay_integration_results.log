@@ -1,0 +1,10 @@
+StumpScore Razorpay-MongoDB Integration Test - 2025-06-02T13:28:01.158Z
+
+[2025-06-02T13:28:01.161Z] 
+[1m[36mSTUMPSCORE RAZORPAY-MONGODB INTEGRATION TEST[0m
+
+[2025-06-02T13:28:01.163Z] [34mℹ Connecting to MongoDB Atlas: mongodb+srv://stumpscore:IadsoIwq68nqVctm@...[0m
+[2025-06-02T13:28:01.519Z] [31m✗ Integration Test Execution[0m: querySrv ENOTFOUND _mongodb._tcp.cluster0.mongodb.atlas.com
+[2025-06-02T13:28:01.532Z] [34mℹ Test results saved to: E:\darshan\S6\software engineering\Project\stumpscore\tests\razorpay_integration_results.log[0m
+[2025-06-02T13:28:01.533Z] -------------------------------------------------------
+[2025-06-02T13:28:01.533Z] [1m[31m✗ RAZORPAY-MONGODB INTEGRATION TESTS FAILED[0m
