@@ -127,10 +127,10 @@ router.post('/google', async (req, res) => {
 // @access  Private
 router.get('/profile', auth, async (req, res) => {
   try {
-    res.json(req.user);
+    const user = await User.findById(req.user._id).select('-password');
+    res.json(user);
   } catch (error) {
-    console.error('Profile error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({ message: 'Error fetching profile' });
   }
 });
 

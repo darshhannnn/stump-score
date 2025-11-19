@@ -5,8 +5,7 @@ const Footer = () => {
     <footer className="bg-gray-800 text-white py-6">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div>
-            <h3 className="text-lg font-semibold mb-3">StumpScore</h3>
+          <div>            <h3 className="text-lg font-semibold mb-3">ScoreX</h3>
             <p className="text-gray-400">
               Your ultimate destination for live cricket scores and updates.
             </p>
@@ -39,7 +38,7 @@ const Footer = () => {
         </div>
         
         <div className="mt-8 pt-6 border-t border-gray-700 text-center text-gray-400">
-          <p>&copy; {new Date().getFullYear()} StumpScore. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} ScoreX. All rights reserved.</p>
         </div>
       </div>
     </footer>

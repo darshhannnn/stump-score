@@ -1,4 +1,4 @@
-// Cricket Scraper Service for StumpScore
+// Cricket Scraper Service for ScoreX
 // This service provides reliable mock data when APIs are unavailable
 // Web scraping is complex in browser environments due to CORS restrictions
 

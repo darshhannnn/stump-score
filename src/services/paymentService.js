@@ -3,53 +3,108 @@ import { RAZORPAY_CONFIG } from './razorpayConfig';
 import axios from 'axios';
 
 // API URLs
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 const PAYMENT_API = `${API_BASE_URL}/payments`;
 
-// Helper to load Razorpay script
-const loadRazorpayScript = () => {
+// Helper to load Razorpay script with retries
+const loadRazorpayScript = (retries = 3) => {
   return new Promise((resolve) => {
-    const script = document.createElement('script');
-    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-    script.onload = () => {
-      resolve(true);
+    const tryLoad = (attemptsLeft) => {
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      
+      script.onload = () => {
+        resolve(true);
+      };
+      
+      script.onerror = () => {
+        if (attemptsLeft > 0) {
+          console.log(`Retrying script load, ${attemptsLeft} attempts left`);
+          setTimeout(() => tryLoad(attemptsLeft - 1), 1000);
+        } else {
+          resolve(false);
+        }
+      };
+      
+      document.body.appendChild(script);
     };
-    script.onerror = () => {
-      resolve(false);
-    };
-    document.body.appendChild(script);
+    
+    tryLoad(retries);
   });
 };
 
-// Create an axios instance with auth token
+// Create an axios instance with auth token and interceptors
 const getAuthAxios = () => {
-  const token = localStorage.getItem('stumpscore_auth_token');
-  return axios.create({
+  const token = localStorage.getItem('scorex_auth_token');
+  const instance = axios.create({
     headers: {
       Authorization: token ? `Bearer ${token}` : '',
       'Content-Type': 'application/json'
     }
   });
+
+  // Add response interceptor for token expiry
+  instance.interceptors.response.use(
+    response => response,
+    error => {
+      if (error.response?.status === 401) {
+        // Token expired - redirect to login
+        window.location.href = '/login';
+      }
+      return Promise.reject(error);
+    }
+  );
+
+  return instance;
+};
+
+// Validate currency and amount
+const validatePaymentDetails = (amount, currency) => {
+  if (!amount || amount <= 0) {
+    throw new Error('Invalid payment amount');
+  }
+
+  if (!currency || !['INR', 'USD'].includes(currency)) {
+    throw new Error('Invalid or unsupported currency');
+  }
+
+  // Additional validation for INR
+  if (currency === 'INR' && amount % 1 !== 0) {
+    throw new Error('Amount must be in whole rupees');
+  }
 };
 
 // Sample payment plans
 export const PAYMENT_PLANS = {
   MONTHLY: {
     id: 'monthly',
-    name: 'Monthly',
-    price: 50,
-    currency: '₹',
+    name: 'Monthly Plan',
+    price: 199,
+    currency: 'INR',
     period: 'month',
     description: 'Monthly premium subscription',
+    features: [
+      'Advanced match predictions',
+      'Personalized dashboard',
+      'Ad-free experience',
+      'Premium statistics'
+    ],
     trialDays: 14
   },
   ANNUAL: {
     id: 'annual',
-    name: 'Annual',
-    price: 200,
-    currency: '₹',
+    name: 'Annual Plan',
+    price: 1999,
+    currency: 'INR',
     period: 'year',
-    description: 'Annual premium subscription (Save 67%)',
+    description: 'Annual premium subscription (Save 16%)',
+    features: [
+      'Advanced match predictions',
+      'Personalized dashboard',
+      'Ad-free experience',
+      'Premium statistics',
+      '2 months free'
+    ],
     trialDays: 14
   }
 };
@@ -63,124 +118,134 @@ export const PAYMENT_METHODS = [
 ];
 
 const paymentService = {
-  // Process a payment using Razorpay
-  processPayment: async (paymentDetails) => {
-    const { plan, paymentMethod, cardDetails, billingInfo, user } = paymentDetails;
-    
-    console.log('Processing payment with Razorpay:', {
-      plan,
-      paymentMethod,
-      billingInfo
-    });
-    
+  // Process a subscription payment using Razorpay
+  processSubscription: async (planId, billingInfo) => {
+    // Validate plan
+    const plan = PAYMENT_PLANS[planId.toUpperCase()];
+    if (!plan) {
+      throw new Error('Invalid subscription plan');
+    }
+
+    // Validate amount and currency
+    validatePaymentDetails(plan.price, plan.currency);
+
     // Make sure Razorpay script is loaded
     const isLoaded = await loadRazorpayScript();
     if (!isLoaded) {
-      throw new Error('Failed to load Razorpay SDK');
+      throw new Error('Failed to load payment gateway. Please check your internet connection and try again.');
     }
-    
-    // Create an order on the backend
+
+    // Create an order through our backend
     const authAxios = getAuthAxios();
     let orderId;
-    
+
     try {
-      // Create order through our backend API
       const orderResponse = await authAxios.post(`${PAYMENT_API}/create-order`, {
         amount: plan.price,
-        currency: plan.currency || 'INR',
+        currency: plan.currency,
         planType: plan.id
       });
-      
+
       orderId = orderResponse.data.id;
     } catch (error) {
       console.error('Order creation failed:', error);
-      throw new Error('Failed to create payment order');
+      throw {
+        code: error.response?.status === 401 ? 'AUTH_ERROR' : 'ORDER_CREATION_FAILED',
+        message: error.response?.data?.message || 'Failed to create payment order. Please try again.'
+      };
     }
-    
-    // Calculate amount in paise (Razorpay uses smallest currency unit)
-    const amountInPaise = plan.price * 100;
-    
+
     // Return a promise that resolves when payment is complete
     return new Promise((resolve, reject) => {
       const options = {
         key: RAZORPAY_CONFIG.key_id,
-        amount: amountInPaise,
-        currency: plan.currency || 'INR',
+        amount: plan.price * 100, // Amount in paise
+        currency: plan.currency,
         name: RAZORPAY_CONFIG.name,
         description: `${plan.name} - ${plan.description}`,
         image: RAZORPAY_CONFIG.image,
-        order_id: orderId, // This should come from your backend in production
+        order_id: orderId,
+        retry: {
+          enabled: true,
+          max_count: 3
+        },
         handler: async function(response) {
           try {
-            // Verify the payment with our backend
-            const authAxios = getAuthAxios();
+            // Verify payment with backend
             const verifyResponse = await authAxios.post(`${PAYMENT_API}/verify`, {
               razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_order_id: response.razorpay_order_id || orderId,
+              razorpay_order_id: response.razorpay_order_id,
               razorpay_signature: response.razorpay_signature,
               planType: plan.id,
-              amount: amountInPaise
+              amount: plan.price * 100 // Amount in paise
             });
-            
-            // Payment successful and verified
+
             resolve({
               success: true,
               transactionId: response.razorpay_payment_id,
-              orderId: response.razorpay_order_id || orderId,
+              orderId: response.razorpay_order_id,
               signature: response.razorpay_signature,
               plan,
               amount: plan.price,
               currency: plan.currency,
               timestamp: new Date().toISOString(),
-              paymentMethod,
-              receiptUrl: '#',
-              user: verifyResponse.data.user
+              user: verifyResponse.data.user,
+              payment: verifyResponse.data.payment
             });
           } catch (error) {
             console.error('Payment verification failed:', error);
             reject({
-              error: 'verification_failed',
-              description: 'Payment verification failed',
-              message: error.response?.data?.message || 'Failed to verify payment'
+              code: error.response?.status === 401 ? 'AUTH_ERROR' : 'VERIFICATION_FAILED',
+              message: error.response?.data?.message || 'Payment verification failed'
             });
           }
         },
-
         prefill: {
-          name: user?.name || billingInfo?.name || '',
-          email: user?.email || billingInfo?.email || '',
-          contact: billingInfo?.phone || ''
+          name: billingInfo.name,
+          email: billingInfo.email,
+          contact: billingInfo.phone
         },
         notes: {
           planId: plan.id,
-          userId: user?.id || ''
+          userId: billingInfo.userId
         },
-        theme: RAZORPAY_CONFIG.theme
+        theme: RAZORPAY_CONFIG.theme,
+        modal: {
+          backdropclose: false,
+          escape: false,
+          handleback: true,
+          ondismiss: function() {
+            reject({
+              code: 'PAYMENT_CANCELLED',
+              message: 'Payment was cancelled'
+            });
+          }
+        }
       };
-      
+
+      // Configure payment failures
       const razorpay = new window.Razorpay(options);
-      
-      // Handle payment failures
       razorpay.on('payment.failed', function(response) {
         reject({
-          error: response.error.code,
-          description: response.error.description,
+          code: response.error.code,
+          message: response.error.description,
           source: response.error.source,
           step: response.error.step,
-          reason: response.error.reason
+          reason: response.error.reason,
+          paymentId: response.error.metadata.payment_id
         });
       });
-      
+
+      // Open Razorpay checkout
       razorpay.open();
     });
   },
-  
+
   // Get subscription details for a user
   getSubscriptionDetails: async () => {
     try {
       const authAxios = getAuthAxios();
       const response = await authAxios.get(`${API_BASE_URL}/users/subscription`);
-      
       return response.data;
     } catch (error) {
       console.error('Failed to get subscription details:', error);
@@ -188,88 +253,28 @@ const paymentService = {
     }
   },
 
-  
+  // Get payment history
+  getPaymentHistory: async () => {
+    try {
+      const authAxios = getAuthAxios();
+      const response = await authAxios.get(`${PAYMENT_API}/history`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to get payment history:', error);
+      throw new Error(error.response?.data?.message || 'Failed to get payment history');
+    }
+  },
+
   // Cancel a subscription
   cancelSubscription: async () => {
     try {
       const authAxios = getAuthAxios();
       const response = await authAxios.post(`${API_BASE_URL}/users/subscription/cancel`);
-      
       return response.data;
     } catch (error) {
       console.error('Failed to cancel subscription:', error);
       throw new Error(error.response?.data?.message || 'Failed to cancel subscription');
     }
-  },
-
-  
-  // Reactivate a cancelled subscription
-  reactivateSubscription: async () => {
-    try {
-      const authAxios = getAuthAxios();
-      const response = await authAxios.post(`${API_BASE_URL}/users/subscription/reactivate`);
-      
-      return response.data;
-    } catch (error) {
-      console.error('Failed to reactivate subscription:', error);
-      throw new Error(error.response?.data?.message || 'Failed to reactivate subscription');
-    }
-  },
-
-  
-  // Change subscription plan
-  changePlan: async (newPlan) => {
-    try {
-      const authAxios = getAuthAxios();
-      const response = await authAxios.post(`${API_BASE_URL}/users/subscription/change-plan`, {
-        planId: newPlan.id
-      });
-      
-      return response.data;
-    } catch (error) {
-      console.error('Failed to change subscription plan:', error);
-      throw new Error(error.response?.data?.message || 'Failed to change subscription plan');
-    }
-  },
-
-  
-  // Validate card details (basic validation)
-  validateCardDetails: (cardDetails) => {
-    const { cardNumber, expiryDate, cvv, cardholderName } = cardDetails;
-    
-    const errors = {};
-    
-    // Simple validation, a real app would use a library like card-validator
-    if (!cardNumber || cardNumber.replace(/\s/g, '').length !== 16) {
-      errors.cardNumber = 'Please enter a valid 16-digit card number';
-    }
-    
-    if (!expiryDate || !expiryDate.match(/^\d{2}\/\d{2}$/)) {
-      errors.expiryDate = 'Please enter a valid expiry date (MM/YY)';
-    } else {
-      const [month, year] = expiryDate.split('/');
-      const now = new Date();
-      const currentYear = now.getFullYear() % 100;
-      const currentMonth = now.getMonth() + 1;
-      
-      if (parseInt(year, 10) < currentYear || 
-         (parseInt(year, 10) === currentYear && parseInt(month, 10) < currentMonth)) {
-        errors.expiryDate = 'Card has expired';
-      }
-    }
-    
-    if (!cvv || cvv.length < 3 || cvv.length > 4) {
-      errors.cvv = 'Please enter a valid CVV';
-    }
-    
-    if (!cardholderName || cardholderName.trim().length < 3) {
-      errors.cardholderName = 'Please enter the cardholder name';
-    }
-    
-    return {
-      isValid: Object.keys(errors).length === 0,
-      errors
-    };
   }
 };
 

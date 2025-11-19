@@ -1,4 +1,4 @@
-// Razorpay configuration for StumpScore
+// Razorpay configuration for ScoreX
 // This file contains the configuration for Razorpay payment gateway
 
 // Razorpay configuration using environment variables
@@ -7,7 +7,7 @@
 export const RAZORPAY_CONFIG = {
   key_id: process.env.REACT_APP_RAZORPAY_KEY_ID || "rzp_test_aWZEdMdEHsxHCg",
   currency: "INR",
-  name: "StumpScore",
+  name: "ScoreX",
   description: "Premium Cricket Analytics Subscription",
   image: "/logo192.png", // Path to your logo
   theme: {

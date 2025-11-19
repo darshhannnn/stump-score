@@ -17,10 +17,9 @@ const Header = () => {
   };
   return (
     <header className="bg-blue-800 text-white shadow-md fixed w-full top-0 z-50">
-      <div className="container mx-auto flex justify-between items-center py-2 px-4">
-        <Link to="/" className="text-xl font-bold flex items-center">
+      <div className="container mx-auto flex justify-between items-center py-2 px-4">        <Link to="/" className="text-xl font-bold flex items-center">
           <span className="mr-1">🏏</span>
-          StumpScore
+          ScoreX
         </Link>
         <nav className="hidden md:block">
           <ul className="flex space-x-6 items-center">

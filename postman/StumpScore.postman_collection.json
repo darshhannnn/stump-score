@@ -1,0 +1,50 @@
+{
+  "info": {
+    "name": "StumpScore API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Test MongoDB Connection",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:5000/api/health"
+      }
+    },
+    {
+      "name": "Create Test Payment Order",
+      "request": {
+        "method": "POST",
+        "url": "http://localhost:5000/api/payment/test-order",
+        "header": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": {
+            "amount": 100,
+            "currency": "INR"
+          }
+        }
+      }
+    },
+    {
+      "name": "Verify Payment",
+      "request": {
+        "method": "POST",
+        "url": "http://localhost:5000/api/payment/verify",
+        "header": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "mode": "raw",
+          "raw": {
+            "razorpay_payment_id": "pay_test123",
+            "razorpay_order_id": "order_test123",
+            "razorpay_signature": "generated_signature"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-// Cricket API service for StumpScore
+// Cricket API service for ScoreX
 // Using web scraping only with dynamic mock data
 
 /* eslint-disable import/no-anonymous-default-export */

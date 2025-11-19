@@ -6,6 +6,7 @@ import StatisticsModal from '../components/StatisticsModal';
 import { fetchCurrentMatches, getFeaturedMatch } from '../services/cricketApi';
 
 const HomePage = () => {
+  // State declarations
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [liveMatches, setLiveMatches] = useState([]);
@@ -13,11 +14,10 @@ const HomePage = () => {
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [dataSource, setDataSource] = useState('Loading...');
   const [isScoreUpdating, setIsScoreUpdating] = useState(false);
-  const previousScores = useRef({});
-  
-  // State for statistics and tabs
+  const [usingMockData, setUsingMockData] = useState(false);
   const [activeTab, setActiveTab] = useState('liveMatches');
   const [currentStat, setCurrentStat] = useState(null);
+  const previousScores = useRef({});
   
   // Stats data for modals
   const statsData = {
@@ -74,20 +74,7 @@ const HomePage = () => {
         'Over': '18.4',
         'Team Score': '132/3'
       }
-    }
-  };
-  
-  // Function to open stat modal
-  const openStatModal = (statType) => {
-    console.log(`Opening stat modal: ${statType}`);
-    setCurrentStat(statType);
-  };
-  
-  // Function to close stat modal
-  const closeStatModal = () => {
-    console.log('Closing stat modal');
-    setCurrentStat(null);
-  };
+    }  };
 
   // Mock data for fallback when API fails
   const mockMatches = [
@@ -132,9 +119,40 @@ const HomePage = () => {
       currentStatus: 'South Africa needs 96 runs'
     }
   ];
+  
+  // Helper functions
+  const updatePreviousScores = (matches) => {
+    const newScoresMap = {};
+    matches.forEach(match => {
+      if (match && match.id) {
+        newScoresMap[match.id] = {
+          team1: { ...match.team1 },
+          team2: { ...match.team2 }
+        };
+      }
+    });
+    previousScores.current = newScoresMap;
+  };
 
-  const [usingMockData, setUsingMockData] = useState(false);
+  const formatLastUpdated = () => {
+    return lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
 
+  const hasScoreChanged = (match) => {
+    if (!match || !match.id) return false;
+    
+    const prevMatch = previousScores.current[match.id];
+    if (!prevMatch) return false;
+    
+    return (
+      prevMatch.team1?.score !== match.team1?.score || 
+      prevMatch.team1?.wickets !== match.team1?.wickets ||
+      prevMatch.team2?.score !== match.team2?.score || 
+      prevMatch.team2?.wickets !== match.team2?.wickets
+    );
+  };  
+
+  // Main function to fetch data
   const fetchData = useCallback(async (forceFetch = false) => {
     try {
       setIsLoading(true);
@@ -149,58 +167,22 @@ const HomePage = () => {
       // Update last updated timestamp
       setLastUpdated(new Date());
       
-      // Try to fetch from API with cache-busting parameter to ensure fresh data
+      // Try to fetch from API
       const timestamp = new Date().getTime();
       const apiData = await fetchCurrentMatches(forceFetch, timestamp);
-      console.log('Raw API data:', apiData);
+      console.log('API data:', apiData);
       
-      // Always set data source to Web Scraping since we only use scraper now
-      setDataSource('Web Scraping');
+      setDataSource('Live API');
       
       if (apiData && apiData.length > 0) {
-        // Process the matches data from scraper format
-        const processedMatches = apiData.map(match => {
-          // Process the data to match exactly what the LiveScoreCard component expects
-          return {
-            id: match.id || `match-${Math.random().toString(36).substr(2, 9)}`,
-            status: match.status || 'LIVE',
-            venue: match.venue || 'International Match',
-            team1: {
-              name: match.team1?.name || 'Team 1',
-              short_name: match.team1?.short_name || match.team1?.name?.substring(0, 3) || 'T1',
-              logo: match.team1?.logo || `https://ui-avatars.com/api/?name=${match.team1?.short_name || match.team1?.name?.substring(0, 3) || 'T1'}&background=0D47A1&color=fff&size=100`,
-              score: match.team1?.score || 0,
-              wickets: match.team1?.wickets || 0,
-              overs: match.team1?.overs || '0.0'
-            },
-            team2: {
-              name: match.team2?.name || 'Team 2',
-              short_name: match.team2?.short_name || match.team2?.name?.substring(0, 3) || 'T2',
-              logo: match.team2?.logo || `https://ui-avatars.com/api/?name=${match.team2?.short_name || match.team2?.name?.substring(0, 3) || 'T2'}&background=FFC107&color=000&size=100`,
-              score: match.team2?.score || 0,
-              wickets: match.team2?.wickets || 0,
-              overs: match.team2?.overs || '0.0'
-            },
-            currentStatus: match.currentStatus || 'Live'
-          };
-        });
+        setLiveMatches(apiData);
+        setFeaturedMatch(getFeaturedMatch(apiData));
         
-        setLiveMatches(processedMatches);
-        
-        // Set featured match using the helper function from cricketApi
-        if (processedMatches.length > 0) {
-          // Use the getFeaturedMatch function that selects a live match if available
-          setFeaturedMatch(getFeaturedMatch(processedMatches));
-          
-          // Check if scores have changed and trigger animation
-          const hasChanges = processedMatches.some(match => 
-            hasScoreChanged(match)
-          );
-          
-          if (hasChanges) {
-            setIsScoreUpdating(true);
-            setTimeout(() => setIsScoreUpdating(false), 2000);
-          }
+        // Check if scores have changed and trigger animation
+        const hasChanges = apiData.some(match => hasScoreChanged(match));
+        if (hasChanges) {
+          setIsScoreUpdating(true);
+          setTimeout(() => setIsScoreUpdating(false), 2000);
         }
       } else {
         throw new Error('No matches found');
@@ -208,8 +190,6 @@ const HomePage = () => {
     } catch (error) {
       console.error('Error fetching matches:', error);
       setError('Failed to fetch live matches. Using demo data.');
-      
-      // Fallback to mock data
       setLiveMatches(mockMatches);
       setFeaturedMatch(mockMatches[0]);
       setUsingMockData(true);
@@ -217,51 +197,35 @@ const HomePage = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [liveMatches]);
 
   // Function to refresh data
   const refreshData = () => {
-    // Force refresh with cache-busting
     setDataSource('Refreshing...');
-    setIsLoading(true); // Show loading state briefly
+    setIsLoading(true);
     fetchData(true);
   };
 
-  // Check if scores have changed to enable visual indicators
-  const hasScoreChanged = (match) => {
-    if (!match || !match.id) return false;
+  // Effect for auto-refresh
+  useEffect(() => {
+    fetchData();
+    const refreshInterval = setInterval(() => {
+      fetchData();
+    }, 30000); // Refresh every 30 seconds
     
-    const prevMatch = previousScores.current[match.id];
-    if (!prevMatch) return false;
-    
-    return (
-      prevMatch.team1?.score !== match.team1?.score || 
-      prevMatch.team1?.wickets !== match.team1?.wickets ||
-      prevMatch.team2?.score !== match.team2?.score || 
-      prevMatch.team2?.wickets !== match.team2?.wickets
-    );
-  };
+    return () => clearInterval(refreshInterval);
+  }, [fetchData]);
 
-  // Update the previous scores reference for change detection
-  const updatePreviousScores = (matches) => {
-    const newScoresMap = {};
-    matches.forEach(match => {
-      if (match && match.id) {
-        newScoresMap[match.id] = {
-          team1: { ...match.team1 },
-          team2: { ...match.team2 }
-        };
-      }
-    });
-    previousScores.current = newScoresMap;
-  };
-
-  // Format the last updated time
-  const formatLastUpdated = () => {
-    return lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  // Modal functions
+  const openStatModal = (statType) => {
+    console.log(`Opening stat modal: ${statType}`);
+    setCurrentStat(statType);
   };
   
-  // Debug function to test API directly
+  const closeStatModal = () => {
+    console.log('Closing stat modal');
+    setCurrentStat(null);
+  };
   const testApiDirectly = async () => {
     try {
       console.log('Testing Cricket Data API directly...');
@@ -285,103 +249,6 @@ const HomePage = () => {
       alert('API test failed: ' + error.message);
     }
   };
-  
-  // Debug function to test web scraping functionality
-  const testScrapingDirectly = async () => {
-    try {
-      console.log('Testing web scraping functionality directly...');
-      setIsLoading(true);
-      setDataSource('Web Scraping');
-      
-      // Import the scraping function dynamically
-      const { scrapeLiveMatches } = await import('../services/cricketScraper');
-      
-      // Call the scraping function
-      const scrapedMatches = await scrapeLiveMatches();
-      console.log('Web Scraping Response:', scrapedMatches);
-      
-      // Update the UI with the scraped matches
-      if (scrapedMatches && scrapedMatches.length > 0) {
-        setLiveMatches(scrapedMatches);
-        setFeaturedMatch(scrapedMatches[0]);
-        setLastUpdated(new Date());
-        setError(null);
-        setUsingMockData(false);
-      } else {
-        throw new Error('No matches found from scraping');
-      }
-      
-      // Notify user of success
-      setTimeout(() => {
-        alert('Web scraping successful! The data is now displayed on the page.');
-      }, 500);
-    } catch (error) {
-      console.error('Web scraping test failed:', error);
-      setError('Web scraping failed: ' + error.message);
-      alert('Web scraping test failed: ' + error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Fetch data on component mount
-  useEffect(() => {
-    fetchData();
-    
-    // Set up auto-refresh every 12 seconds for more frequent updates
-    const refreshInterval = setInterval(() => {
-      fetchData();
-    }, 12000);
-    
-    // Clean up interval on component unmount
-    return () => clearInterval(refreshInterval);
-  }, [fetchData]); // Added fetchData to dependency array
-  
-  // Additional effect to refresh specifically when using scraped data
-  // This ensures dynamic score updates from our mock data
-  useEffect(() => {
-    if (dataSource === 'Web Scraping') {
-      const scrapingRefreshInterval = setInterval(async () => {
-        console.log('Refreshing web scraping data...');
-        
-        try {
-          // Import the scraping function directly instead of calling testScrapingDirectly
-          // to avoid circular dependency
-          const { scrapeLiveMatches } = await import('../services/cricketScraper');
-          
-          // Save current scores for comparison
-          if (liveMatches && liveMatches.length > 0) {
-            updatePreviousScores(liveMatches);
-          }
-          
-          // Get fresh data
-          const scrapedMatches = await scrapeLiveMatches();
-          
-          // Silently update the UI without showing loading state
-          if (scrapedMatches && scrapedMatches.length > 0) {
-            setLiveMatches(scrapedMatches);
-            setFeaturedMatch(scrapedMatches[0]);
-            setLastUpdated(new Date());
-            
-            // Check if scores have changed and trigger animation
-            const hasChanges = scrapedMatches.some(match => 
-              hasScoreChanged(match)
-            );
-            
-            if (hasChanges) {
-              setIsScoreUpdating(true);
-              setTimeout(() => setIsScoreUpdating(false), 2000);
-            }
-          }
-        } catch (error) {
-          console.error('Silent refresh error:', error);
-          // Don't show errors for background refresh
-        }
-      }, 8000); // Refresh scraped data more frequently (every 8 seconds)
-      
-      return () => clearInterval(scrapingRefreshInterval);
-    }
-  }, [dataSource, liveMatches]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -610,8 +477,7 @@ const HomePage = () => {
                   <span className="inline-block w-2 h-2 bg-green-500 rounded-full mr-1"></span>
                   {dataSource}
                 </span>
-              )}
-              <div className="flex space-x-2">
+              )}              <div className="flex space-x-2">
                 <button 
                   onClick={refreshData}
                   className="flex items-center bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1 rounded transition-colors"
@@ -624,21 +490,12 @@ const HomePage = () => {
                 </button>
                 <button 
                   onClick={testApiDirectly}
-                  className="flex items-center bg-red-600 hover:bg-red-700 text-white text-sm px-3 py-1 rounded transition-colors"
+                  className="flex items-center bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1 rounded transition-colors"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                   </svg>
                   Test API
-                </button>
-                <button 
-                  onClick={testScrapingDirectly}
-                  className="flex items-center bg-purple-600 hover:bg-purple-700 text-white text-sm px-3 py-1 rounded transition-colors"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 21h7a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v11m0 5l4.879-4.879m0 0a3 3 0 104.243-4.242 3 3 0 00-4.243 4.242z" />
-                  </svg>
-                  Test Scraping
                 </button>
               </div>
             </div>

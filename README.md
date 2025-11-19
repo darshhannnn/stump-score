@@ -1,6 +1,44 @@
-# StumpScore - Live Cricket Score Application
+# ScoreX (formerly StumpScore)
 
-StumpScore is a modern web application that provides real-time cricket scores, match details, and statistics using React.js and Tailwind CSS. The application fetches live cricket data using a cricket API to display up-to-date information about ongoing matches.
+A premium cricket analytics platform providing real-time match insights, statistics, and predictions.
+
+## Environment Variables
+
+Create a `.env` file in both the root and client directories:
+
+### Root `.env`
+```
+NODE_ENV=development
+PORT=5000
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret
+RAZORPAY_KEY_ID=your_razorpay_key_id
+RAZORPAY_KEY_SECRET=your_razorpay_key_secret
+RAZORPAY_WEBHOOK_SECRET=your_razorpay_webhook_secret
+```
+
+### Client `.env`
+```
+REACT_APP_API_URL=http://localhost:5000/api
+REACT_APP_RAZORPAY_KEY_ID=your_razorpay_key_id
+```
+
+## Razorpay Setup
+
+1. Create a Razorpay account at https://razorpay.com
+2. Get your API keys from the Dashboard > Settings > API Keys
+3. Add webhook endpoint in Razorpay Dashboard:
+   - Go to Settings > Webhooks
+   - Add New Webhook
+   - URL: `your_domain/api/payments/webhook`
+   - Select Events:
+     * payment.captured
+     * payment.failed
+     * refund.processed
+   - Add Secret: Create a strong secret key
+   - Enable webhook
+
+4. Update your environment variables with the webhook secret.
 
 ## Features
 
