@@ -44,7 +44,6 @@ const MatchDetail = ({ match, matchId }) => {
               wickets: matchDetails.score?.[1]?.w || 0,
               overs: matchDetails.score?.[1]?.o || '0.0'
             },
-            currentStatus: matchDetails.status,
             // Process batting and bowling data if available
             currentBatsmen: matchDetails?.players?.batting
               ?.filter(batsman => !batsman.dismissal)
@@ -58,15 +57,18 @@ const MatchDetail = ({ match, matchId }) => {
                 strikeRate: batsman.sr,
                 onStrike: batsman.dismissal === 'batting'
               })) || [],
-            currentBowler: matchDetails?.players?.bowling
-              ?.sort((a, b) => b.overs - a.overs)[0] && {
-                name: matchDetails.players.bowling[0].name,
-                overs: matchDetails.players.bowling[0].overs,
-                maidens: matchDetails.players.bowling[0].maidens,
-                runs: matchDetails.players.bowling[0].runs,
-                wickets: matchDetails.players.bowling[0].wickets,
-                economy: matchDetails.players.bowling[0].economy
-              },
+            currentBowler: matchDetails?.players?.bowling?.length > 0 ? (() => {
+                const sortedBowlers = [...matchDetails.players.bowling].sort((a, b) => b.overs - a.overs);
+                const bestBowler = sortedBowlers[0];
+                return {
+                  name: bestBowler.name,
+                  overs: bestBowler.overs,
+                  maidens: bestBowler.maidens,
+                  runs: bestBowler.runs,
+                  wickets: bestBowler.wickets,
+                  economy: bestBowler.economy
+                };
+              })() : null,
             // Process recent overs if available
             recentOvers: []
           };

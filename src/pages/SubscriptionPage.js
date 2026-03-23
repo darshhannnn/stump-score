@@ -7,7 +7,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 
 const SubscriptionPage = () => {
-  const { user, isPremium } = useAuth();
+  const { isPremium } = useAuth();
   const navigate = useNavigate();
   const [selectedPlan, setSelectedPlan] = useState(PAYMENT_PLANS.MONTHLY);
   const [step, setStep] = useState('select-plan'); // 'select-plan' or 'checkout'

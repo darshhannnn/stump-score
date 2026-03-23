@@ -2,62 +2,6 @@
 // This service provides reliable mock data when APIs are unavailable
 // Web scraping is complex in browser environments due to CORS restrictions
 
-import axios from 'axios';
-import * as cheerio from 'cheerio';
-import { safeExtractText, parseScoreText, generateTeamLogo, formatMatchStatus } from '../utils/scrapingUtils';
-
-// Target websites for scraping
-// Using CORS proxies to avoid cross-origin issues
-const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/';
-const CRICBUZZ_URL = 'https://www.cricbuzz.com';
-const ESPN_CRICINFO_URL = 'https://www.espncricinfo.com';
-
-// Fallback to local mock data in case scraping fails
-const mockLiveMatches = [
-  {
-    id: 'mock-match-1',
-    scraped: true,
-    status: 'LIVE',
-    venue: 'Scraping Demo - IPL 2025',
-    team1: {
-      name: 'Mumbai Indians',
-      logo: 'https://ui-avatars.com/api/?name=MI&background=0D47A1&color=fff&size=100',
-      score: 187,
-      wickets: 4,
-      overs: '18.2'
-    },
-    team2: {
-      name: 'Chennai Super Kings',
-      logo: 'https://ui-avatars.com/api/?name=CSK&background=FFC107&color=000&size=100',
-      score: 142,
-      wickets: 3,
-      overs: '15.4'
-    },
-    currentStatus: 'Mumbai Indians needs 46 runs in 28 balls'
-  },
-  {
-    id: 'mock-match-2',
-    scraped: true,
-    status: 'LIVE',
-    venue: 'Scraping Demo - World Cup 2025',
-    team1: {
-      name: 'India',
-      logo: 'https://ui-avatars.com/api/?name=IND&background=0D47A1&color=fff&size=100',
-      score: 312,
-      wickets: 6,
-      overs: '50.0'
-    },
-    team2: {
-      name: 'Australia',
-      logo: 'https://ui-avatars.com/api/?name=AUS&background=FFC107&color=000&size=100',
-      score: 217,
-      wickets: 4,
-      overs: '35.2'
-    },
-    currentStatus: 'Australia needs 96 runs in 88 balls'
-  }
-];
-
 /**
  * Provide live matches data with dynamic updates
  * @returns {Promise} Promise object representing the matches data
@@ -113,14 +57,14 @@ export const scrapeLiveMatches = async () => {
   const team2Overs = `${Math.min(Math.floor(team2Score / 15), 49)}.${(minutes + 3) % 6}`;
   
   // Generate team-specific match status messages
-  const generateStatusMessage = (team1Name, team2Name, team1Score, team2Score) => {
+  const generateStatusMessage = (team1Name, team2Name, team1ScoreValue, team2ScoreValue) => {
     // Calculate run difference and balls/overs remaining
-    const runDiff = Math.abs(team1Score - team2Score);
+    const runDiff = Math.abs(team1ScoreValue - team2ScoreValue);
     const ballsRemaining = 30 + (minutes % 30);
-    const oversRemaining = Math.floor(ballsRemaining / 6) + (ballsRemaining % 6) / 10;
+    // const oversRemaining = Math.floor(ballsRemaining / 6) + (ballsRemaining % 6) / 10;
     
     // Different status options based on match situation
-    if (team1Score > team2Score) {
+    if (team1ScoreValue > team2ScoreValue) {
       const options = [
         `${team2Name} needs ${runDiff + 1} runs from ${ballsRemaining} balls`,
         `${team2Name} requires ${runDiff + 1} runs with ${10 - team2Wickets} wickets in hand`,
@@ -260,17 +204,12 @@ export const scrapeLiveMatches = async () => {
 export const scrapeMatchDetails = async (matchId) => {
   console.log(`Generating mock match details for ID: ${matchId}`);
   
-  // Use current time to generate dynamic data
+  // Get current time to generate dynamic data
   const currentDate = new Date();
   const hours = currentDate.getHours();
   const minutes = currentDate.getMinutes();
-  const seconds = currentDate.getSeconds();
   
   // Extract match type from matchId (ipl, odi, t20)
-  const matchType = matchId.includes('ipl') ? 'IPL' : 
-                   matchId.includes('odi') ? 'ODI' : 
-                   matchId.includes('t20') ? 'T20' : 'Test';
-  
   // Determine teams and venue based on the matchId
   let team1Name, team2Name, venueName, seriesName;
   
@@ -297,27 +236,27 @@ export const scrapeMatchDetails = async (matchId) => {
   }
   
   // Generate dynamic scores based on time
-  const team1Score = 180 + (hours % 12) * 10 + Math.floor(minutes / 10);
-  const team1Wickets = Math.min(Math.floor(team1Score / 60), 9);
-  const team1Overs = `${Math.min(Math.floor(team1Score / 20), 49)}.${minutes % 6}`;
+  const team1ScoreValue = 180 + (hours % 12) * 10 + Math.floor(minutes / 10);
+  const team1WicketsValue = Math.min(Math.floor(team1ScoreValue / 60), 9);
+  const team1OversValue = `${Math.min(Math.floor(team1ScoreValue / 20), 49)}.${minutes % 6}`;
   
-  const team2Score = 120 + (hours % 12) * 8 + Math.floor(minutes / 8);
-  const team2Wickets = Math.min(Math.floor(team2Score / 50), 9);
-  const team2Overs = `${Math.min(Math.floor(team2Score / 15), 49)}.${(minutes + 3) % 6}`;
+  const team2ScoreValue = 120 + (hours % 12) * 8 + Math.floor(minutes / 8);
+  const team2WicketsValue = Math.min(Math.floor(team2ScoreValue / 50), 9);
+  const team2OversValue = `${Math.min(Math.floor(team2ScoreValue / 15), 49)}.${(minutes + 3) % 6}`;
   
   // Generate match status message
-  const generateStatusMessage = (team1, team2, score1, score2) => {
+  const generateStatusMessageForDetails = (team1, team2, score1, score2) => {
     const runDiff = Math.abs(score1 - score2);
-    const ballsRemaining = 30 + (minutes % 30);
+    const ballsRemainingValue = 30 + (minutes % 30);
     
     if (score1 > score2) {
-      return `${team2} needs ${runDiff + 1} runs from ${ballsRemaining} balls`;
+      return `${team2} needs ${runDiff + 1} runs from ${ballsRemainingValue} balls`;
     } else {
-      return `${team1} needs ${runDiff + 1} runs from ${ballsRemaining} balls`;
+      return `${team1} needs ${runDiff + 1} runs from ${ballsRemainingValue} balls`;
     }
   };
   
-  const matchStatus = generateStatusMessage(team1Name, team2Name, team1Score, team2Score);
+  const matchStatus = generateStatusMessageForDetails(team1Name, team2Name, team1ScoreValue, team2ScoreValue);
   
   // Generate player names for the match
   const team1Players = [
@@ -437,10 +376,10 @@ export const scrapeMatchDetails = async (matchId) => {
   };
   
   // Generate recent overs data
-  const generateRecentOvers = (numOvers = 4) => {
+  const generateRecentOvers = (numOversValue = 4) => {
     const recentOvers = [];
     
-    for (let i = 0; i < numOvers; i++) {
+    for (let i = 0; i < numOversValue; i++) {
       const over = [];
       for (let j = 0; j < 6; j++) {
         const random = Math.random();
@@ -457,38 +396,36 @@ export const scrapeMatchDetails = async (matchId) => {
   };
   
   // Generate team info with short names
-  const team1ShortName = team1Name.split(' ')[0].substring(0, 3).toUpperCase();
-  const team2ShortName = team2Name.split(' ')[0].substring(0, 3).toUpperCase();
   
-  const teamInfo = [
-    { name: team1Name, shortname: team1ShortName },
-    { name: team2Name, shortname: team2ShortName }
-  ];
+  // const teamInfo = [
+  //   { name: team1Name, shortname: team1ShortName },
+  //   { name: team2Name, shortname: team2ShortName }
+  // ];
   
   // Generate match info
-  const toss = {
-    winner: Math.random() > 0.5 ? team1Name : team2Name,
-    decision: Math.random() > 0.5 ? 'bat' : 'field'
-  };
+  // const toss = {
+  //   winner: Math.random() > 0.5 ? team1Name : team2Name,
+  //   decision: Math.random() > 0.5 ? 'bat' : 'field'
+  // };
   
   // Determine which team is batting based on match progress
-  const team1Batting = team1Score > team2Score;
+  const team1Batting = team1ScoreValue > team2ScoreValue;
   
   // Generate batting and bowling data
   const battingPlayers = team1Batting ? 
-    generateBattingData(team1Players, team1Score, team1Wickets) : 
-    generateBattingData(team2Players, team2Score, team2Wickets);
+    generateBattingData(team1Players, team1ScoreValue, team1WicketsValue) : 
+    generateBattingData(team2Players, team2ScoreValue, team2WicketsValue);
   
   const bowlingPlayers = team1Batting ? 
-    generateBowlingData(team2Players, team1Score, team1Overs) : 
-    generateBowlingData(team1Players, team2Score, team2Overs);
+    generateBowlingData(team2Players, team1ScoreValue, team1OversValue) : 
+    generateBowlingData(team1Players, team2ScoreValue, team2OversValue);
   
   // Generate key stats
   const keyStats = {
     highestScore: `${battingPlayers[0].name} ${battingPlayers[0].r}(${battingPlayers[0].b})`,
     mostWickets: `${bowlingPlayers[0].name} ${bowlingPlayers[0].w}/${bowlingPlayers[0].r}`,
-    runRate: (team1Score / parseFloat(team1Overs)).toFixed(2),
-    bestPartnership: `${battingPlayers[0].name} & ${battingPlayers[1].name} ${Math.floor(team1Score * 0.4)}(${Math.floor(Math.random() * 30) + 20})`
+    runRate: (team1ScoreValue / parseFloat(team1OversValue)).toFixed(2),
+    bestPartnership: `${battingPlayers[0].name} & ${battingPlayers[1].name} ${Math.floor(team1ScoreValue * 0.4)}(${Math.floor(Math.random() * 30) + 20})`
   };
 
   // Generate head-to-head stats
@@ -512,8 +449,8 @@ export const scrapeMatchDetails = async (matchId) => {
     series: seriesName,
     teams: [team1Name, team2Name],
     score: [
-      { r: team1Score, w: team1Wickets, o: team1Overs },
-      { r: team2Score, w: team2Wickets, o: team2Overs }
+      { r: team1ScoreValue, w: team1WicketsValue, o: team1OversValue },
+      { r: team2ScoreValue, w: team2WicketsValue, o: team2OversValue }
     ],
     toss: {
       winner: Math.random() > 0.5 ? team1Name : team2Name,
@@ -534,15 +471,15 @@ export const scrapeMatchDetails = async (matchId) => {
     innings: [
       {
         team: team1Name,
-        score: team1Score,
-        wickets: team1Wickets,
-        overs: team1Overs
+        score: team1ScoreValue,
+        wickets: team1WicketsValue,
+        overs: team1OversValue
       },
       {
         team: team2Name,
-        score: team2Score,
-        wickets: team2Wickets,
-        overs: team2Overs
+        score: team2ScoreValue,
+        wickets: team2WicketsValue,
+        overs: team2OversValue
       }
     ]
   };

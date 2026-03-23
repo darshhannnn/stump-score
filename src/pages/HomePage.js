@@ -89,8 +89,10 @@ const HomePage = () => {
     setCurrentStat(null);
   };
 
-  // Mock data for fallback when API fails
-  const mockMatches = [
+  const [usingMockData, setUsingMockData] = useState(false);
+
+  // Memoize mock data to prevent unnecessary re-renders
+  const mockMatches = React.useMemo(() => [
     {
       id: 'ind-vs-aus-2025',
       status: 'LIVE',
@@ -131,9 +133,36 @@ const HomePage = () => {
       },
       currentStatus: 'South Africa needs 96 runs'
     }
-  ];
+  ], []);
 
-  const [usingMockData, setUsingMockData] = useState(false);
+  // Check if scores have changed to enable visual indicators
+  const hasScoreChanged = useCallback((match) => {
+    if (!match || !match.id) return false;
+    
+    const prevMatch = previousScores.current[match.id];
+    if (!prevMatch) return false;
+    
+    return (
+      prevMatch.team1?.score !== match.team1?.score || 
+      prevMatch.team1?.wickets !== match.team1?.wickets ||
+      prevMatch.team2?.score !== match.team2?.score || 
+      prevMatch.team2?.wickets !== match.team2?.wickets
+    );
+  }, []);
+
+  // Update the previous scores reference for change detection
+  const updatePreviousScores = useCallback((matches) => {
+    const newScoresMap = {};
+    matches.forEach(match => {
+      if (match && match.id) {
+        newScoresMap[match.id] = {
+          team1: { ...match.team1 },
+          team2: { ...match.team2 }
+        };
+      }
+    });
+    previousScores.current = newScoresMap;
+  }, []);
 
   const fetchData = useCallback(async (forceFetch = false) => {
     try {
@@ -217,7 +246,7 @@ const HomePage = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [liveMatches, hasScoreChanged, updatePreviousScores, mockMatches]);
 
   // Function to refresh data
   const refreshData = () => {
@@ -225,35 +254,6 @@ const HomePage = () => {
     setDataSource('Refreshing...');
     setIsLoading(true); // Show loading state briefly
     fetchData(true);
-  };
-
-  // Check if scores have changed to enable visual indicators
-  const hasScoreChanged = (match) => {
-    if (!match || !match.id) return false;
-    
-    const prevMatch = previousScores.current[match.id];
-    if (!prevMatch) return false;
-    
-    return (
-      prevMatch.team1?.score !== match.team1?.score || 
-      prevMatch.team1?.wickets !== match.team1?.wickets ||
-      prevMatch.team2?.score !== match.team2?.score || 
-      prevMatch.team2?.wickets !== match.team2?.wickets
-    );
-  };
-
-  // Update the previous scores reference for change detection
-  const updatePreviousScores = (matches) => {
-    const newScoresMap = {};
-    matches.forEach(match => {
-      if (match && match.id) {
-        newScoresMap[match.id] = {
-          team1: { ...match.team1 },
-          team2: { ...match.team2 }
-        };
-      }
-    });
-    previousScores.current = newScoresMap;
   };
 
   // Format the last updated time
@@ -381,7 +381,7 @@ const HomePage = () => {
       
       return () => clearInterval(scrapingRefreshInterval);
     }
-  }, [dataSource, liveMatches]);
+  }, [dataSource, liveMatches, hasScoreChanged, updatePreviousScores]);
 
   return (
     <div className="min-h-screen flex flex-col">

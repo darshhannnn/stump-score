@@ -55,19 +55,22 @@ userSchema.methods.matchPassword = async function(enteredPassword) {
 userSchema.pre('save', async function(next) {
   // Only hash the password if it's been modified (or is new)
   if (!this.isModified('password')) {
-    next();
+    return next();
   }
 
   // Skip password hashing for Google users
   if (this.password === 'GOOGLE_AUTH_USER') {
-    next();
-    return;
+    return next();
   }
 
-  // Generate salt and hash password
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
-  next();
+  try {
+    // Generate salt and hash password
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+  } catch (error) {
+    next(error);
+  }
 });
 
 const User = mongoose.model('User', userSchema);

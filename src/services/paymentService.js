@@ -65,7 +65,7 @@ export const PAYMENT_METHODS = [
 const paymentService = {
   // Process a payment using Razorpay
   processPayment: async (paymentDetails) => {
-    const { plan, paymentMethod, cardDetails, billingInfo, user } = paymentDetails;
+    const { plan, paymentMethod, billingInfo, user } = paymentDetails;
     
     console.log('Processing payment with Razorpay:', {
       plan,

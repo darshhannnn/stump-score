@@ -122,7 +122,7 @@ const PaymentPage = () => {
     
     try {
       // Process payment
-      const paymentResult = await paymentService.processPayment({
+      await paymentService.processPayment({
         plan: selectedPlan,
         paymentMethod: selectedPaymentMethod,
         cardDetails: selectedPaymentMethod === 'card' ? formData : null,

@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import './PremiumPage.css';
 
 const PremiumPage = () => {
   const [activeFeature, setActiveFeature] = useState(0);
   const [animateChart, setAnimateChart] = useState(false);
-  const [upgradeLoading, setUpgradeLoading] = useState(false);
-  const [upgradeSuccess, setUpgradeSuccess] = useState(false);
-  const { isAuthenticated, isPremium, upgradeToPremium } = useAuth();
+  const { isAuthenticated, isPremium } = useAuth();
   const navigate = useNavigate();
   
   const features = [
@@ -295,7 +293,7 @@ const PremiumPage = () => {
                   ))}
                 </ul>
                 <button 
-                  className={`w-full ${isPremium() ? 'bg-green-500 cursor-default' : 'bg-blue-600 hover:bg-blue-700'} text-white font-medium py-2 px-4 rounded-lg transition duration-300 ${upgradeLoading ? 'opacity-70 cursor-wait' : ''}`}
+                  className={`w-full ${isPremium() ? 'bg-green-500 cursor-default' : 'bg-blue-600 hover:bg-blue-700'} text-white font-medium py-2 px-4 rounded-lg transition duration-300`}
                   onClick={() => {
                     if (isPremium()) return; // Already premium
                     
@@ -307,15 +305,10 @@ const PremiumPage = () => {
                     // Navigate to the new Razorpay subscription page
                     navigate('/subscription');
                   }}
-                  disabled={isPremium() || upgradeLoading}
+                  disabled={isPremium()}
                 >
                   {isPremium() ? 'Already Premium ✓' : 'Subscribe with Razorpay'}
                 </button>
-                {upgradeSuccess && (
-                  <div className="mt-2 text-green-600 text-sm font-medium">
-                    Successfully upgraded to Premium!
-                  </div>
-                )}
               </div>
             ))}
           </div>

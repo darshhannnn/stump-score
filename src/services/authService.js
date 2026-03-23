@@ -1,6 +1,6 @@
 // Authentication service
 // Supports both MongoDB and Firebase Google authentication
-import { signInWithPopup, signOut } from 'firebase/auth';
+import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider } from '../firebase/firebase';
 import axios from 'axios';
 
@@ -163,7 +163,6 @@ const authService = {
       let googleUser;
       try {
         const result = await signInWithPopup(auth, googleProvider);
-        const credential = googleProvider.credentialFromResult(result);
         googleUser = {
           name: result.user.displayName,
           email: result.user.email,

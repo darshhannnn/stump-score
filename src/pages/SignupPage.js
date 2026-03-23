@@ -193,7 +193,7 @@ const SignupPage = () => {
                 </div>
                 <div className="ml-3 text-sm">
                   <label htmlFor="agreeTerms" className="font-medium text-gray-700">
-                    I agree to the <a href="#" className="text-blue-600 hover:underline">Terms of Service</a> and <a href="#" className="text-blue-600 hover:underline">Privacy Policy</a>
+                    I agree to the <a href="#!" className="text-blue-600 hover:underline">Terms of Service</a> and <a href="#!" className="text-blue-600 hover:underline">Privacy Policy</a>
                   </label>
                   {errors.agreeTerms && <p className="mt-1 text-sm text-red-500">{errors.agreeTerms}</p>}
                 </div>
