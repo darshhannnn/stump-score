@@ -1,6 +1,29 @@
 // Payment service using Razorpay integration with MongoDB backend
 import { RAZORPAY_CONFIG } from './razorpayConfig';
-import axios from 'axios';
+
+// Helper to make JSON requests
+const jsonRequest = async (url, { method = 'GET', headers = {}, body } = {}) => {
+  const response = await fetch(url, {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      ...headers
+    },
+    body: body ? JSON.stringify(body) : undefined
+  });
+
+  const contentType = response.headers.get('content-type') || '';
+  const data = contentType.includes('application/json') ? await response.json() : await response.text();
+
+  if (!response.ok) {
+    const message = typeof data === 'object' && data !== null ? data.message : undefined;
+    const err = new Error(message || 'Request failed');
+    err.response = { data };
+    throw err;
+  }
+
+  return { data };
+};
 
 // API URLs
 const API_BASE_URL = 'http://localhost:5000/api';
@@ -21,15 +44,12 @@ const loadRazorpayScript = () => {
   });
 };
 
-// Create an axios instance with auth token
-const getAuthAxios = () => {
+// Helper to get auth headers
+const getAuthHeaders = () => {
   const token = localStorage.getItem('stumpscore_auth_token');
-  return axios.create({
-    headers: {
-      Authorization: token ? `Bearer ${token}` : '',
-      'Content-Type': 'application/json'
-    }
-  });
+  return {
+    Authorization: token ? `Bearer ${token}` : ''
+  };
 };
 
 // Sample payment plans
@@ -80,15 +100,18 @@ const paymentService = {
     }
     
     // Create an order on the backend
-    const authAxios = getAuthAxios();
     let orderId;
     
     try {
       // Create order through our backend API
-      const orderResponse = await authAxios.post(`${PAYMENT_API}/create-order`, {
-        amount: plan.price,
-        currency: plan.currency || 'INR',
-        planType: plan.id
+      const orderResponse = await jsonRequest(`${PAYMENT_API}/create-order`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: {
+          amount: plan.price,
+          currency: plan.currency || 'INR',
+          planType: plan.id
+        }
       });
       
       orderId = orderResponse.data.id;
@@ -113,13 +136,16 @@ const paymentService = {
         handler: async function(response) {
           try {
             // Verify the payment with our backend
-            const authAxios = getAuthAxios();
-            const verifyResponse = await authAxios.post(`${PAYMENT_API}/verify`, {
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_order_id: response.razorpay_order_id || orderId,
-              razorpay_signature: response.razorpay_signature,
-              planType: plan.id,
-              amount: amountInPaise
+            const verifyResponse = await jsonRequest(`${PAYMENT_API}/verify`, {
+              method: 'POST',
+              headers: getAuthHeaders(),
+              body: {
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id || orderId,
+                razorpay_signature: response.razorpay_signature,
+                planType: plan.id,
+                amount: amountInPaise
+              }
             });
             
             // Payment successful and verified
@@ -178,8 +204,10 @@ const paymentService = {
   // Get subscription details for a user
   getSubscriptionDetails: async () => {
     try {
-      const authAxios = getAuthAxios();
-      const response = await authAxios.get(`${API_BASE_URL}/users/subscription`);
+      const response = await jsonRequest(`${API_BASE_URL}/users/subscription`, {
+        method: 'GET',
+        headers: getAuthHeaders()
+      });
       
       return response.data;
     } catch (error) {
@@ -192,8 +220,10 @@ const paymentService = {
   // Cancel a subscription
   cancelSubscription: async () => {
     try {
-      const authAxios = getAuthAxios();
-      const response = await authAxios.post(`${API_BASE_URL}/users/subscription/cancel`);
+      const response = await jsonRequest(`${API_BASE_URL}/users/subscription/cancel`, {
+        method: 'POST',
+        headers: getAuthHeaders()
+      });
       
       return response.data;
     } catch (error) {
@@ -206,8 +236,10 @@ const paymentService = {
   // Reactivate a cancelled subscription
   reactivateSubscription: async () => {
     try {
-      const authAxios = getAuthAxios();
-      const response = await authAxios.post(`${API_BASE_URL}/users/subscription/reactivate`);
+      const response = await jsonRequest(`${API_BASE_URL}/users/subscription/reactivate`, {
+        method: 'POST',
+        headers: getAuthHeaders()
+      });
       
       return response.data;
     } catch (error) {
@@ -220,9 +252,12 @@ const paymentService = {
   // Change subscription plan
   changePlan: async (newPlan) => {
     try {
-      const authAxios = getAuthAxios();
-      const response = await authAxios.post(`${API_BASE_URL}/users/subscription/change-plan`, {
-        planId: newPlan.id
+      const response = await jsonRequest(`${API_BASE_URL}/users/subscription/change-plan`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: {
+          planId: newPlan.id
+        }
       });
       
       return response.data;

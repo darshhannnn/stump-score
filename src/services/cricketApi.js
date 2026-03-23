@@ -1,15 +1,46 @@
+import { scrapeLiveMatches, scrapeMatchDetails } from './cricketScraper';
+
 // Cricket API service for StumpScore
-// Using web scraping only with dynamic mock data
+// Using real API with fallback to web scraping
 
 /* eslint-disable import/no-anonymous-default-export */
 /* eslint-disable no-unused-vars */
 
+const API_KEY = '8c428c05-056e-4d3b-9471-24956c550f47'; // Use the key found in HomePage.js which seems to be the active one
+const BASE_URL = 'https://api.cricapi.com/v1';
+
 // Configuration for web scraping service
-// Using dynamic mock data to avoid CORS issues
 const ENABLE_LOGGING = true; // Enable/disable logging
 
 // Cache settings
 const CACHE_EXPIRY = 5 * 60 * 1000; // 5 minutes in milliseconds
+
+const jsonRequest = async (url, { method = 'GET', headers = {}, params } = {}) => {
+  const fullUrl = (() => {
+    if (!params) return url;
+    const u = new URL(url);
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) u.searchParams.set(key, String(value));
+    });
+    return u.toString();
+  })();
+
+  const response = await fetch(fullUrl, {
+    method,
+    headers
+  });
+
+  const contentType = response.headers.get('content-type') || '';
+  const data = contentType.includes('application/json') ? await response.json() : await response.text();
+
+  if (!response.ok) {
+    const err = new Error('Request failed');
+    err.response = { data };
+    throw err;
+  }
+
+  return { data };
+};
 
 // In-memory cache for match data
 let matchesCache = {
@@ -37,77 +68,105 @@ const logError = (message, error = null) => {
 };
 
 /**
- * Fetch current matches data using web scraping only
- * @param {boolean} forceRefresh - Whether to force a refresh and bypass cache
- * @param {number} timestamp - Timestamp for cache-busting
- * @returns {Promise} Promise object representing the matches data
+ * Fetch current live matches from CricketData API
+ * Falls back to web scraping if API fails or returns no data
  */
-export const fetchCurrentMatches = async (forceRefresh = false, timestamp = Date.now()) => {
+export const fetchCurrentMatches = async (forceRefresh = false, timestamp = null) => {
   try {
-    // Check if we have cached data and it's still valid (unless force refresh is requested)
-    if (!forceRefresh && matchesCache.data.length > 0 && matchesCache.timestamp) {
-      const cacheAge = Date.now() - matchesCache.timestamp;
-      if (cacheAge < CACHE_EXPIRY) {
-        logInfo(`Using cached match data (${Math.round(cacheAge / 1000)}s old)`);
-        return matchesCache.data;
+    console.log('Fetching live matches from real API...');
+
+    // Attempt to fetch from real API
+    const response = await jsonRequest(`${BASE_URL}/currentMatches`, {
+      method: 'GET',
+      params: {
+        apikey: API_KEY,
+        offset: 0
       }
-    }
-    
-    logInfo('Fetching live cricket matches using web scraping...');
-    
-    // Import the scraping function dynamically to avoid circular dependencies
-    const { scrapeLiveMatches } = await import('./cricketScraper');
-    
-    // Call the scraping function to get dynamic mock data
-    const scrapedMatches = await scrapeLiveMatches();
-    
-    if (scrapedMatches && scrapedMatches.length > 0) {
-      logInfo('Successfully scraped match data:', scrapedMatches.length + ' matches');
-      
+    });
+
+    if (response.data && response.data.status === 'success' && response.data.data && response.data.data.length > 0) {
+      console.log('Real API data received successfully');
+
+      // Map real API data to our application format
+      const matches = response.data.data.map(match => ({
+        id: match.id,
+        status: match.status.includes('Live') ? 'LIVE' : match.status,
+        venue: match.venue || 'International Ground',
+        team1: {
+          name: match.teamInfo?.[0]?.name || 'Team 1',
+          short_name: match.teamInfo?.[0]?.shortname || match.teamInfo?.[0]?.name?.substring(0, 3).toUpperCase() || 'T1',
+          logo: match.teamInfo?.[0]?.img || `https://ui-avatars.com/api/?name=${match.teamInfo?.[0]?.name}&background=0D47A1&color=fff&size=100`,
+          score: match.score?.[0]?.r || 0,
+          wickets: match.score?.[0]?.w || 0,
+          overs: match.score?.[0]?.o || '0.0'
+        },
+        team2: {
+          name: match.teamInfo?.[1]?.name || 'Team 2',
+          short_name: match.teamInfo?.[1]?.shortname || match.teamInfo?.[1]?.name?.substring(0, 3).toUpperCase() || 'T2',
+          logo: match.teamInfo?.[1]?.img || `https://ui-avatars.com/api/?name=${match.teamInfo?.[1]?.name}&background=FFC107&color=000&size=100`,
+          score: match.score?.[1]?.r || 0,
+          wickets: match.score?.[1]?.w || 0,
+          overs: match.score?.[1]?.o || '0.0'
+        },
+        currentStatus: match.status
+      }));
+
       // Update the cache
-      matchesCache.data = scrapedMatches;
+      matchesCache.data = matches;
       matchesCache.timestamp = Date.now();
-      
-      return scrapedMatches;
+
+      return matches;
+    } else {
+      console.warn('Real API returned no live matches or failed. Falling back to scraper...');
+      return await scrapeLiveMatches();
     }
-    
-    throw new Error('No matches found from scraping');
   } catch (error) {
-    logError('Error fetching matches using web scraping:', error);
-    
-    // Return empty array if scraping fails
-    return [];
+    console.error('API Fetch error:', error.message);
+    console.log('Falling back to web scraping dynamic mock engine...');
+    return await scrapeLiveMatches();
   }
 };
 
 /**
- * Fetch match details by ID using web scraping
- * @param {string} matchId - The ID of the match to fetch details for
- * @param {boolean} forceRefresh - Whether to force a refresh and bypass cache
- * @returns {Promise} Promise object representing the match details
+ * Fetch detailed information for a specific match
  */
-export const fetchMatchDetails = async (matchId, forceRefresh = false) => {
+export const fetchMatchDetails = async (matchId) => {
   try {
-    // Check cache first if not forcing refresh
-    if (!forceRefresh && matchDetailsCache[matchId] && matchDetailsCache[matchId].timestamp) {
-      const cacheAge = Date.now() - matchDetailsCache[matchId].timestamp;
-      if (cacheAge < CACHE_EXPIRY) {
-        logInfo(`Using cached match details for ${matchId} (${Math.round(cacheAge / 1000)}s old)`);
-        return matchDetailsCache[matchId].data;
+    console.log(`Fetching details for match ${matchId} from real API...`);
+
+    // Attempt to fetch details from real API
+    const response = await jsonRequest(`${BASE_URL}/match_info`, {
+      method: 'GET',
+      params: {
+        apikey: API_KEY,
+        id: matchId
       }
-    }
-    
-    logInfo(`Fetching details for match ${matchId} using web scraping...`);
-    
-    // Import the scraping function dynamically
-    const { scrapeMatchDetails } = await import('./cricketScraper');
-    
-    // Call the scraping function
-    const matchDetails = await scrapeMatchDetails(matchId);
-    
-    if (matchDetails) {
-      logInfo('Successfully scraped match details');
-      
+    });
+
+    if (response.data && response.data.status === 'success' && response.data.data) {
+      const match = response.data.data;
+
+      // Map to our detailed format
+      const matchDetails = {
+        id: match.id,
+        status: match.status,
+        venue: match.venue,
+        teams: [match.teamInfo?.[0]?.name, match.teamInfo?.[1]?.name],
+        score: [
+          { r: match.score?.[0]?.r || 0, w: match.score?.[0]?.w || 0, o: match.score?.[0]?.o || '0.0' },
+          { r: match.score?.[1]?.r || 0, w: match.score?.[1]?.w || 0, o: match.score?.[1]?.o || '0.0' }
+        ],
+        toss: {
+          winner: match.tossWinner || 'TBD',
+          decision: match.tossChoice || 'bat'
+        },
+        players: {
+          batting: [], // Real API often requires separate calls for full scorecard
+          bowling: []
+        },
+        currentStatus: match.status
+      };
+
       // Update the cache
       matchDetailsCache[matchId] = {
         data: matchDetails,
@@ -115,12 +174,12 @@ export const fetchMatchDetails = async (matchId, forceRefresh = false) => {
       };
       
       return matchDetails;
+    } else {
+      return await scrapeMatchDetails(matchId);
     }
-    
-    throw new Error(`Match details not found for ID: ${matchId}`);
   } catch (error) {
-    logError(`Error fetching match details for ${matchId}:`, error);
-    return null;
+    console.error('API Match Details error:', error.message);
+    return await scrapeMatchDetails(matchId);
   }
 };
 

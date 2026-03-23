@@ -166,7 +166,11 @@ const HomePage = () => {
 
   const fetchData = useCallback(async (forceFetch = false) => {
     try {
-      setIsLoading(true);
+      // Only show global loading on initial load or manual refresh
+      if (liveMatches.length === 0 || forceFetch) {
+        setIsLoading(true);
+      }
+      
       setError(null);
       setUsingMockData(false);
       
@@ -214,12 +218,21 @@ const HomePage = () => {
           };
         });
         
-        setLiveMatches(processedMatches);
+        // Update data silently if not initial load
+        // Use functional update to compare with previous state and avoid unnecessary re-renders
+        setLiveMatches(prevMatches => {
+          const isDataChanged = JSON.stringify(prevMatches) !== JSON.stringify(processedMatches);
+          return isDataChanged ? processedMatches : prevMatches;
+        });
         
         // Set featured match using the helper function from cricketApi
         if (processedMatches.length > 0) {
           // Use the getFeaturedMatch function that selects a live match if available
-          setFeaturedMatch(getFeaturedMatch(processedMatches));
+          const nextFeaturedMatch = getFeaturedMatch(processedMatches);
+          setFeaturedMatch(prevFeatured => {
+            const isFeaturedChanged = JSON.stringify(prevFeatured) !== JSON.stringify(nextFeaturedMatch);
+            return isFeaturedChanged ? nextFeaturedMatch : prevFeatured;
+          });
           
           // Check if scores have changed and trigger animation
           const hasChanges = processedMatches.some(match => 
@@ -236,13 +249,17 @@ const HomePage = () => {
       }
     } catch (error) {
       console.error('Error fetching matches:', error);
-      setError('Failed to fetch live matches. Using demo data.');
       
-      // Fallback to mock data
-      setLiveMatches(mockMatches);
-      setFeaturedMatch(mockMatches[0]);
-      setUsingMockData(true);
-      setDataSource('Mock Data');
+      // Only set error if we don't have any data at all
+      if (liveMatches.length === 0) {
+        setError('Failed to fetch live matches. Using demo data.');
+        
+        // Fallback to mock data
+        setLiveMatches(mockMatches);
+        setFeaturedMatch(mockMatches[0]);
+        setUsingMockData(true);
+        setDataSource('Mock Data');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -252,7 +269,6 @@ const HomePage = () => {
   const refreshData = () => {
     // Force refresh with cache-busting
     setDataSource('Refreshing...');
-    setIsLoading(true); // Show loading state briefly
     fetchData(true);
   };
 
@@ -326,62 +342,19 @@ const HomePage = () => {
 
   // Fetch data on component mount
   useEffect(() => {
+    // Initial fetch
     fetchData();
     
-    // Set up auto-refresh every 12 seconds for more frequent updates
+    // Set up auto-refresh every 30 seconds (standard for live scores)
     const refreshInterval = setInterval(() => {
       fetchData();
-    }, 12000);
+    }, 30000);
     
     // Clean up interval on component unmount
     return () => clearInterval(refreshInterval);
   }, [fetchData]); // Added fetchData to dependency array
   
-  // Additional effect to refresh specifically when using scraped data
-  // This ensures dynamic score updates from our mock data
-  useEffect(() => {
-    if (dataSource === 'Web Scraping') {
-      const scrapingRefreshInterval = setInterval(async () => {
-        console.log('Refreshing web scraping data...');
-        
-        try {
-          // Import the scraping function directly instead of calling testScrapingDirectly
-          // to avoid circular dependency
-          const { scrapeLiveMatches } = await import('../services/cricketScraper');
-          
-          // Save current scores for comparison
-          if (liveMatches && liveMatches.length > 0) {
-            updatePreviousScores(liveMatches);
-          }
-          
-          // Get fresh data
-          const scrapedMatches = await scrapeLiveMatches();
-          
-          // Silently update the UI without showing loading state
-          if (scrapedMatches && scrapedMatches.length > 0) {
-            setLiveMatches(scrapedMatches);
-            setFeaturedMatch(scrapedMatches[0]);
-            setLastUpdated(new Date());
-            
-            // Check if scores have changed and trigger animation
-            const hasChanges = scrapedMatches.some(match => 
-              hasScoreChanged(match)
-            );
-            
-            if (hasChanges) {
-              setIsScoreUpdating(true);
-              setTimeout(() => setIsScoreUpdating(false), 2000);
-            }
-          }
-        } catch (error) {
-          console.error('Silent refresh error:', error);
-          // Don't show errors for background refresh
-        }
-      }, 8000); // Refresh scraped data more frequently (every 8 seconds)
-      
-      return () => clearInterval(scrapingRefreshInterval);
-    }
-  }, [dataSource, liveMatches, hasScoreChanged, updatePreviousScores]);
+  // Additional effect removed - merged into main refresh interval to prevent flickering
 
   return (
     <div className="min-h-screen flex flex-col">

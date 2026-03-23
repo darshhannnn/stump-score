@@ -18,11 +18,18 @@ const MatchDetail = ({ match, matchId }) => {
     if (matchId) {
       const fetchData = async () => {
         try {
-          setIsLoading(true);
+          // Only show loading if we don't have details yet
+          if (!detailedMatch) {
+            setIsLoading(true);
+          }
           
-          // Fetch match details using web scraping
+          // Fetch match details using real API (with fallback)
           const matchDetails = await fetchMatchDetails(matchId);
           
+          if (!matchDetails) {
+            throw new Error('Match details not found');
+          }
+
           // Process and combine the data
           const processedMatch = {
             id: matchId,
@@ -30,6 +37,11 @@ const MatchDetail = ({ match, matchId }) => {
             status: matchDetails.status || 'LIVE',
             venue: matchDetails.venue || 'Cricket Stadium',
             currentStatus: matchDetails.currentStatus || 'Match in progress',
+            teams: matchDetails.teams || ['Team 1', 'Team 2'],
+            score: matchDetails.score || [
+              { r: 0, w: 0, o: '0.0' },
+              { r: 0, w: 0, o: '0.0' }
+            ],
             team1: {
               name: matchDetails.teams?.[0] || 'Team 1',
               logo: `https://ui-avatars.com/api/?name=${(matchDetails.teams?.[0] || 'T1').substring(0, 3)}&background=0D47A1&color=fff&size=100`,
@@ -45,38 +57,17 @@ const MatchDetail = ({ match, matchId }) => {
               overs: matchDetails.score?.[1]?.o || '0.0'
             },
             // Process batting and bowling data if available
-            currentBatsmen: matchDetails?.players?.batting
-              ?.filter(batsman => !batsman.dismissal)
-              ?.slice(0, 2)
-              ?.map(batsman => ({
-                name: batsman.batsman,
-                runs: batsman.r,
-                balls: batsman.b,
-                fours: batsman['4s'],
-                sixes: batsman['6s'],
-                strikeRate: batsman.sr,
-                onStrike: batsman.dismissal === 'batting'
-              })) || [],
-            currentBowler: matchDetails?.players?.bowling?.length > 0 ? (() => {
-                const sortedBowlers = [...matchDetails.players.bowling].sort((a, b) => b.overs - a.overs);
-                const bestBowler = sortedBowlers[0];
-                return {
-                  name: bestBowler.name,
-                  overs: bestBowler.overs,
-                  maidens: bestBowler.maidens,
-                  runs: bestBowler.runs,
-                  wickets: bestBowler.wickets,
-                  economy: bestBowler.economy
-                };
-              })() : null,
-            // Process recent overs if available
-            recentOvers: []
+            players: matchDetails.players || { batting: [], bowling: [] },
+            recentOvers: matchDetails.recentOvers || []
           };
           
           setDetailedMatch(processedMatch);
+          setError(null);
         } catch (err) {
           console.error('Error fetching match details:', err);
-          setError('Failed to load match details. Please try again later.');
+          if (!detailedMatch) {
+            setError('Failed to load match details. Please try again later.');
+          }
         } finally {
           setIsLoading(false);
         }

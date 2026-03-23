@@ -2,7 +2,29 @@
 // Supports both MongoDB and Firebase Google authentication
 import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider } from '../firebase/firebase';
-import axios from 'axios';
+
+const jsonRequest = async (url, { method = 'GET', headers = {}, body } = {}) => {
+  const response = await fetch(url, {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      ...headers
+    },
+    body: body ? JSON.stringify(body) : undefined
+  });
+
+  const contentType = response.headers.get('content-type') || '';
+  const data = contentType.includes('application/json') ? await response.json() : await response.text();
+
+  if (!response.ok) {
+    const message = typeof data === 'object' && data !== null ? data.message : undefined;
+    const err = new Error(message || 'Request failed');
+    err.response = { data };
+    throw err;
+  }
+
+  return { data };
+};
 
 // API URLs
 const API_BASE_URL = 'http://localhost:5000/api';
@@ -14,20 +36,16 @@ const API_URLS = {
   subscription: `${API_BASE_URL}/users/subscription`
 };
 
-// Create an axios instance with auth token
-const getAuthAxios = () => {
-  const token = localStorage.getItem(AUTH_TOKEN_KEY);
-  return axios.create({
-    headers: {
-      Authorization: token ? `Bearer ${token}` : '',
-      'Content-Type': 'application/json'
-    }
-  });
-};
-
 // Store the current authenticated user in localStorage
 const AUTH_TOKEN_KEY = 'stumpscore_auth_token';
 const USER_KEY = 'stumpscore_user';
+
+const getAuthHeaders = () => {
+  const token = localStorage.getItem(AUTH_TOKEN_KEY);
+  return {
+    Authorization: token ? `Bearer ${token}` : ''
+  };
+};
 
 // Authentication service
 const authService = {
@@ -55,7 +73,7 @@ const authService = {
   // Login
   login: async (email, password) => {
     try {
-      const response = await axios.post(API_URLS.login, { email, password });
+      const response = await jsonRequest(API_URLS.login, { method: 'POST', body: { email, password } });
       
       const { token, _id, name, email: userEmail, isPremium, premiumUntil } = response.data;
       
@@ -83,7 +101,7 @@ const authService = {
   // Signup
   signup: async (name, email, password) => {
     try {
-      const response = await axios.post(API_URLS.register, { name, email, password });
+      const response = await jsonRequest(API_URLS.register, { method: 'POST', body: { name, email, password } });
       
       const { token, _id, name: userName, email: userEmail, isPremium } = response.data;
       
@@ -130,10 +148,13 @@ const authService = {
         throw new Error('User not authenticated');
       }
       
-      const authAxios = getAuthAxios();
-      const response = await authAxios.post(`${API_BASE_URL}/payments/verify`, {
-        ...paymentDetails,
-        userId: user.id
+      const response = await jsonRequest(`${API_BASE_URL}/payments/verify`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: {
+          ...paymentDetails,
+          userId: user.id
+        }
       });
       
       // Update user in local storage with premium status
@@ -189,7 +210,7 @@ const authService = {
       }
       
       // Send Google user data to our backend API
-      const response = await axios.post(API_URLS.google, googleUser);
+      const response = await jsonRequest(API_URLS.google, { method: 'POST', body: googleUser });
       
       const { token, _id, isPremium } = response.data;
       
