@@ -1,10 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { fetchMatchDetails } from '../services/cricketApi';
+import MatchAnalysis from './MatchAnalysis';
+import LiveCommentary from './LiveCommentary';
+import { calculateWinProbability, generateMatchProgressData, generateAICommentary } from '../utils/analysisUtils';
 
 const MatchDetail = ({ match, matchId }) => {
   const [detailedMatch, setDetailedMatch] = useState(match);
   const [isLoading, setIsLoading] = useState(!match);
   const [error, setError] = useState(null);
+  
+  // Advanced state for analysis and commentary
+  const [analysisData, setAnalysisData] = useState([]);
+  const [winProbability, setWinProbability] = useState({ team1: 50, team2: 50 });
+  const [commentary, setCommentary] = useState(["Welcome to the live match coverage! Stay tuned for AI-powered updates."]);
+  const prevMatchRef = useRef(null);
   
   useEffect(() => {
     // If a match object is directly provided, use it
@@ -19,7 +28,7 @@ const MatchDetail = ({ match, matchId }) => {
       const fetchData = async () => {
         try {
           // Only show loading if we don't have details yet
-          if (!detailedMatch) {
+          if (!prevMatchRef.current) {
             setIsLoading(true);
           }
           
@@ -61,11 +70,24 @@ const MatchDetail = ({ match, matchId }) => {
             recentOvers: matchDetails.recentOvers || []
           };
           
+          // Generate AI Commentary if score changed
+          if (prevMatchRef.current) {
+            const newComment = generateAICommentary(prevMatchRef.current, processedMatch);
+            if (newComment) {
+              setCommentary(prev => [newComment, ...prev].slice(0, 20));
+            }
+          }
+          
+          // Advanced Analysis Updates
+          setAnalysisData(generateMatchProgressData(processedMatch));
+          setWinProbability(calculateWinProbability(processedMatch));
+          
+          prevMatchRef.current = processedMatch;
           setDetailedMatch(processedMatch);
           setError(null);
         } catch (err) {
           console.error('Error fetching match details:', err);
-          if (!detailedMatch) {
+          if (!prevMatchRef.current) {
             setError('Failed to load match details. Please try again later.');
           }
         } finally {
@@ -367,6 +389,19 @@ const MatchDetail = ({ match, matchId }) => {
           </div>
         </div>
       </div>
+
+      {/* Advanced Analysis Section */}
+      <MatchAnalysis 
+        data={analysisData} 
+        probability={winProbability} 
+        teams={{ 
+          team1: detailedMatch.team1, 
+          team2: detailedMatch.team2 
+        }} 
+      />
+
+      {/* Live Commentary Section */}
+      <LiveCommentary commentary={commentary} />
     </div>
   );
 };
