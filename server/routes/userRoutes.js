@@ -186,4 +186,125 @@ router.get('/subscription', auth, async (req, res) => {
   }
 });
 
+// @route   POST /api/users/subscription/cancel
+// @desc    Cancel user subscription (sets isPremium to false but keeps premiumUntil date)
+// @access  Private
+router.post('/subscription/cancel', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (!user.isPremium) {
+      return res.status(400).json({ message: 'No active subscription to cancel' });
+    }
+
+    // Mark subscription as cancelled but keep premiumUntil date for access until expiry
+    user.isPremium = false;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Subscription cancelled successfully. You will have access until the end of your billing period.',
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        isPremium: user.isPremium,
+        premiumUntil: user.premiumUntil
+      }
+    });
+  } catch (error) {
+    console.error('Cancel subscription error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// @route   POST /api/users/subscription/reactivate
+// @desc    Reactivate a cancelled subscription
+// @access  Private
+router.post('/subscription/reactivate', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Check if there's an active premium period
+    const now = new Date();
+    if (user.premiumUntil && user.premiumUntil > now) {
+      user.isPremium = true;
+      await user.save();
+
+      res.json({
+        success: true,
+        message: 'Subscription reactivated successfully',
+        user: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          isPremium: user.isPremium,
+          premiumUntil: user.premiumUntil
+        }
+      });
+    } else {
+      return res.status(400).json({ message: 'Your subscription has expired. Please purchase a new plan.' });
+    }
+  } catch (error) {
+    console.error('Reactivate subscription error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// @route   POST /api/users/subscription/change-plan
+// @desc    Change subscription plan (upgrades premium period)
+// @access  Private
+router.post('/subscription/change-plan', auth, async (req, res) => {
+  try {
+    const { planId } = req.body;
+
+    if (!planId || !['monthly', 'annual'].includes(planId)) {
+      return res.status(400).json({ message: 'Invalid plan type. Must be "monthly" or "annual"' });
+    }
+
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Calculate new premium expiration date
+    const now = new Date();
+    let premiumUntil;
+
+    if (planId === 'monthly') {
+      premiumUntil = new Date(now.setMonth(now.getMonth() + 1));
+    } else if (planId === 'annual') {
+      premiumUntil = new Date(now.setFullYear(now.getFullYear() + 1));
+    }
+
+    user.isPremium = true;
+    user.premiumUntil = premiumUntil;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: `Subscription changed to ${planId} plan successfully`,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        isPremium: user.isPremium,
+        premiumUntil: user.premiumUntil
+      }
+    });
+  } catch (error) {
+    console.error('Change plan error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 module.exports = router;
