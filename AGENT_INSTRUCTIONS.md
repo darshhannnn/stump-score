@@ -71,6 +71,19 @@ To ensure developer experience, there is a `.catch()` block that **falls back to
 - If Atlas authentication fails, it connects to local.
 - **Agent Task**: When writing DB scripts, be aware that you might be interacting with the local instance if the user's IP isn't whitelisted in Atlas.
 
+### B2. Environment Variables (`.env` reference)
+| Variable | Side | Purpose |
+|---|---|---|
+| `MONGO_URI` | Backend | MongoDB Atlas connection string (falls back to local) |
+| `JWT_SECRET` | Backend | JWT signing secret |
+| `PORT` | Backend | Express port (default 5000) |
+| `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` | Backend | Razorpay order creation & verification |
+| `REACT_APP_RAZORPAY_KEY_ID` | Frontend | Razorpay Checkout modal |
+| `REACT_APP_CRICAPI_KEY` | Frontend | CricAPI live scores (primary source, 100 req/day) |
+| `REACT_APP_RAPIDAPI_KEY` | Frontend | RapidAPI Cricbuzz (secondary source) |
+
+A secrets-free template lives in `.env.example`. Note: Express 5 removed the `'*'` wildcard route syntax - use a terminal `app.use(...)` middleware for SPA fallbacks (see `server.js`).
+
 ### C. Authentication Flow
 1. User submits login form -> `src/services/authService.js` hits `POST http://localhost:5000/api/users/login`.
 2. Backend validates bcrypt hash against DB.

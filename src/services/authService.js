@@ -132,6 +132,17 @@ const authService = {
     return { success: true };
   },
 
+  // Merge updates into the locally stored user (e.g. after a successful payment)
+  updateStoredUser: (updates = {}) => {
+    const current = authService.getCurrentUser() || {};
+    const merged = { ...current, ...updates };
+    if (!merged.id && merged._id) {
+      merged.id = merged._id;
+    }
+    localStorage.setItem(USER_KEY, JSON.stringify(merged));
+    return merged;
+  },
+
 
   // Check if the user is premium
   isPremiumUser: () => {

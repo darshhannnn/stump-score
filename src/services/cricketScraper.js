@@ -378,7 +378,7 @@ export const scrapeMatchDetails = async (matchId) => {
   // Generate recent overs data
   const generateRecentOvers = (numOversValue = 4) => {
     const recentOvers = [];
-    
+
     for (let i = 0; i < numOversValue; i++) {
       const over = [];
       for (let j = 0; j < 6; j++) {
@@ -389,9 +389,9 @@ export const scrapeMatchDetails = async (matchId) => {
         else if (random < 0.8) over.push('4');
         else over.push('6');
       }
-      recentOvers.push(over);
+      recentOvers.push({ number: i + 1, balls: over });
     }
-    
+
     return recentOvers;
   };
   

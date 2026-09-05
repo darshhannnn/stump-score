@@ -1,104 +1,67 @@
-# StumpScore - Live Cricket Score Application
+# 🏏 StumpScore - Live Cricket Scores Hub & Scorekeeper
 
-StumpScore is a modern web application that provides real-time cricket scores, match details, and statistics using React.js and Tailwind CSS. The application fetches live cricket data using a cricket API to display up-to-date information about ongoing matches.
+StumpScore is a full-stack cricket platform: a Cricbuzz-style live scores hub plus a casual board-game scorekeeper, with user accounts and a Razorpay premium subscription.
+
+Progress: Complete ✅ (build passing, backend flows e2e-tested)
+
+## Architecture
+- `/` = Live Cricket Scores Hub (Cricbuzz-style)
+- `/scorekeeper` = Casual board game scorekeeper
+- `/leaderboard` = Game stats & history
+- `/teams` = Team profiles
+- `/series` = ICC rankings & tournaments
+- `/search?q=` = Match search
+- `/match/:id` = Match details, scorecard, AI commentary & win probability
+- `/premium`, `/subscription`, `/payment` = Premium subscription (Razorpay)
+- `/dashboard` = Premium member dashboard (predictions, stats, subscription management)
+- `/login`, `/signup` = Auth (JWT + Google via Firebase, with mock fallback)
+- `/home` = Legacy (redirects to `/`)
 
 ## Features
+- Live match scores with auto-refresh (30s) and score-change highlight
+- Score ticker scrolling bar
+- Featured match hero section
+- Tab navigation (Live / Completed / Upcoming / Series) with format filters (T20/ODI/Test)
+- Quick stats row (top scorer, best bowler, partnership)
+- Match cards with team logos, scores, status
+- Match detail pages with AI commentary, win probability and run-rate charts
+- Search across matches, teams, venues and series
+- Dark mode (persisted + system preference)
+- Scorekeeper game (undo, rounds, save/load, share, export JSON)
+- Leaderboard with charts, win rates and streaks
+- User auth (JWT + Google OAuth via Firebase with mock fallback)
+- Premium subscription (Razorpay order + verify, cancel/reactivate/change-plan)
+- PWA-ready
+- 404 catch-all page
 
-- Real-time cricket scores and match updates
-- Detailed match information including player statistics
-- Live match status with run rates and required runs
-- Responsive design that works on desktop and mobile devices
-- Beautiful UI built with Tailwind CSS
-- Auto-refreshing data that updates every 30 seconds
-
-## API Integration
-
-StumpScore uses the Cricket API with the key `00ba4444-6577-435e-a241-02719e3c82e5` to fetch real-time cricket data. The API provides information about:
-
-- Current matches
-- Match details and scorecards
-- Player information
-- Team statistics
-
-## Project Structure
-
-```
-src/
-├── components/     # Reusable UI components
-├── pages/          # Application pages
-├── services/       # API services
-└── App.js          # Main application component
+## Run
+```bash
+npm install
+npm run dev   # backend on http://localhost:5000 + frontend on http://localhost:1011
 ```
 
-## Setup Instructions
+Production:
+```bash
+npm run build
+NODE_ENV=production npm run server   # serves the build folder on port 5000
+```
 
-1. Clone the repository
-2. Install dependencies with `npm install`
-3. Start the development server with `npm start`
+Verify backend end-to-end (uses in-memory MongoDB, no setup needed):
+```bash
+node tests/e2e-smoke-test.js
+```
 
-## Available Scripts
+## Live score data sources (in fallback order)
+1. **CricAPI** (`REACT_APP_CRICAPI_KEY`, free: 100 req/day)
+2. **RapidAPI Cricbuzz** (`REACT_APP_RAPIDAPI_KEY`, free: 100 req/month)
+3. **Dynamic mock engine** (`src/services/cricketScraper.js`) - generates plausible live data so the UI always works
 
-In the project directory, you can run:
+## Environment variables
+Copy `.env.example` to `.env` and fill in your values. See `AGENT_INSTRUCTIONS.md` for the full list and architecture notes.
 
-### `npm start`
+## Tech stack
+- **Frontend**: React 18 (CRA), Tailwind CSS 3, React Router 6, Recharts, Firebase Auth
+- **Backend**: Express 5, MongoDB (Mongoose 8), JWT + bcrypt, Razorpay SDK
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
-
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
-
-### `npm test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## License
+MIT - Free for all!

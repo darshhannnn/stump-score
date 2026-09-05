@@ -95,18 +95,18 @@ const SignupPage = () => {
   };
 
   return (
-    <div className="pt-20 pb-10 min-h-screen bg-gradient-to-b from-blue-50 to-white">
+    <div className="py-10 min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-950 dark:via-gray-950 dark:to-gray-900">
       <div className="container mx-auto px-4 py-8">
-        <div className="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden">
+        <div className="max-w-md mx-auto card overflow-hidden">
           <div className="p-8">
             <div className="text-center mb-8">
-              <h1 className="text-2xl font-bold text-blue-900 mb-2">Create your account</h1>
-              <p className="text-gray-600">Join the StumpScore community today</p>
+              <h1 className="text-2xl font-bold text-blue-900 dark:text-blue-300 mb-2">Create your account</h1>
+              <p className="text-gray-600 dark:text-gray-400">Join the StumpScore community today</p>
             </div>
             
             <form onSubmit={handleSubmit}>
               <div className="mb-6">
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                   Full Name
                 </label>
                 <input
@@ -116,15 +116,15 @@ const SignupPage = () => {
                   value={formData.name}
                   onChange={handleChange}
                   className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    errors.name ? 'border-red-500' : 'border-gray-300'
+                    errors.name ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'
                   }`}
                   placeholder="Your full name"
                 />
-                {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name}</p>}
+                {errors.name && <p className="mt-1 text-sm text-red-500 dark:text-rose-400">{errors.name}</p>}
               </div>
               
               <div className="mb-6">
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                   Email Address
                 </label>
                 <input
@@ -134,15 +134,15 @@ const SignupPage = () => {
                   value={formData.email}
                   onChange={handleChange}
                   className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    errors.email ? 'border-red-500' : 'border-gray-300'
+                    errors.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'
                   }`}
                   placeholder="name@example.com"
                 />
-                {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email}</p>}
+                {errors.email && <p className="mt-1 text-sm text-red-500 dark:text-rose-400">{errors.email}</p>}
               </div>
               
               <div className="mb-6">
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                   Password
                 </label>
                 <input
@@ -152,16 +152,16 @@ const SignupPage = () => {
                   value={formData.password}
                   onChange={handleChange}
                   className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    errors.password ? 'border-red-500' : 'border-gray-300'
+                    errors.password ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'
                   }`}
                   placeholder="••••••••"
                 />
-                {errors.password && <p className="mt-1 text-sm text-red-500">{errors.password}</p>}
-                <p className="mt-1 text-xs text-gray-500">Must be at least 8 characters</p>
+                {errors.password && <p className="mt-1 text-sm text-red-500 dark:text-rose-400">{errors.password}</p>}
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Must be at least 8 characters</p>
               </div>
               
               <div className="mb-6">
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                   Confirm Password
                 </label>
                 <input
@@ -171,11 +171,11 @@ const SignupPage = () => {
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
+                    errors.confirmPassword ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'
                   }`}
                   placeholder="••••••••"
                 />
-                {errors.confirmPassword && <p className="mt-1 text-sm text-red-500">{errors.confirmPassword}</p>}
+                {errors.confirmPassword && <p className="mt-1 text-sm text-red-500 dark:text-rose-400">{errors.confirmPassword}</p>}
               </div>
               
               <div className="flex items-start mb-6">
@@ -186,16 +186,16 @@ const SignupPage = () => {
                     name="agreeTerms"
                     checked={formData.agreeTerms}
                     onChange={handleChange}
-                    className={`h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 ${
+                    className={`h-4 w-4 text-blue-600 dark:text-blue-400 rounded border-gray-300 dark:border-gray-700 focus:ring-blue-500 ${
                       errors.agreeTerms ? 'border-red-500' : ''
                     }`}
                   />
                 </div>
                 <div className="ml-3 text-sm">
-                  <label htmlFor="agreeTerms" className="font-medium text-gray-700">
-                    I agree to the <a href="#!" className="text-blue-600 hover:underline">Terms of Service</a> and <a href="#!" className="text-blue-600 hover:underline">Privacy Policy</a>
+                  <label htmlFor="agreeTerms" className="font-medium text-gray-700 dark:text-gray-200">
+                    I agree to the <Link to="/terms" className="text-blue-600 dark:text-blue-400 hover:underline">Terms of Service</Link> and <Link to="/privacy" className="text-blue-600 dark:text-blue-400 hover:underline">Privacy Policy</Link>
                   </label>
-                  {errors.agreeTerms && <p className="mt-1 text-sm text-red-500">{errors.agreeTerms}</p>}
+                  {errors.agreeTerms && <p className="mt-1 text-sm text-red-500 dark:text-rose-400">{errors.agreeTerms}</p>}
                 </div>
               </div>
               
@@ -219,9 +219,9 @@ const SignupPage = () => {
             </form>
             
             <div className="mt-6 text-center">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 Already have an account?{' '}
-                <Link to="/login" className="font-medium text-blue-600 hover:underline">
+                <Link to="/login" className="font-medium text-blue-600 dark:text-blue-400 hover:underline">
                   Log in
                 </Link>
               </p>
@@ -230,10 +230,10 @@ const SignupPage = () => {
             <div className="mt-8">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300"></div>
+                  <div className="w-full border-t border-gray-300 dark:border-gray-700"></div>
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">Or sign up with</span>
+                  <span className="px-2 bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-400">Or sign up with</span>
                 </div>
               </div>
               
@@ -242,7 +242,7 @@ const SignupPage = () => {
                   type="button"
                   onClick={handleGoogleSignIn}
                   disabled={authLoading}
-                  className="py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="py-2 px-4 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm bg-white dark:bg-gray-900 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
                   <span className="flex justify-center items-center">
                     <svg className="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
@@ -253,7 +253,7 @@ const SignupPage = () => {
                 </button>
                 <button
                   type="button"
-                  className="py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="py-2 px-4 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm bg-white dark:bg-gray-900 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
                   <span className="flex justify-center items-center">
                     <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
@@ -266,7 +266,7 @@ const SignupPage = () => {
           </div>
         </div>
         
-        <div className="mt-6 text-center text-gray-500 text-xs">
+        <div className="mt-6 text-center text-gray-500 dark:text-gray-400 text-xs">
           &copy; {new Date().getFullYear()} StumpScore. All rights reserved.
         </div>
       </div>

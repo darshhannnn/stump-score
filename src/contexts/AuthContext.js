@@ -77,13 +77,13 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Update user premium status
-  const upgradeToPremium = async () => {
+  // Update user premium status (paymentDetails come from the Razorpay handler)
+  const upgradeToPremium = async (paymentDetails) => {
     setLoading(true);
     setError(null);
-    
+
     try {
-      const response = await authService.upgradeToPremium();
+      const response = await authService.upgradeToPremium(paymentDetails);
       setUser(response.user);
       return response;
     } catch (err) {
@@ -92,6 +92,13 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Merge updates into the current user (context + localStorage)
+  const updateUser = (updates) => {
+    const updated = authService.updateStoredUser(updates);
+    setUser(updated);
+    return updated;
   };
 
   // Check if user is premium
@@ -140,6 +147,7 @@ export const AuthProvider = ({ children }) => {
     signup,
     logout,
     upgradeToPremium,
+    updateUser,
     loginWithGoogle,
   };
 

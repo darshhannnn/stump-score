@@ -121,8 +121,8 @@ const PaymentPage = () => {
     setPaymentError(null);
     
     try {
-      // Process payment
-      await paymentService.processPayment({
+      // Process payment (creates the order and opens Razorpay checkout)
+      const result = await paymentService.processPayment({
         plan: selectedPlan,
         paymentMethod: selectedPaymentMethod,
         cardDetails: selectedPaymentMethod === 'card' ? formData : null,
@@ -131,15 +131,21 @@ const PaymentPage = () => {
           email: user?.email
         }
       });
-      
-      // Upgrade user to premium
-      await upgradeToPremium();
-      
+
+      // Upgrade user to premium using the verified payment details
+      await upgradeToPremium({
+        razorpay_payment_id: result.transactionId,
+        razorpay_order_id: result.orderId,
+        razorpay_signature: result.signature,
+        planType: result.plan.id,
+        amount: result.plan.price * 100
+      });
+
       setPaymentSuccess(true);
-      
+
       // Redirect to dashboard after 2 seconds
       setTimeout(() => {
-        navigate('/premium-dashboard');
+        navigate('/dashboard');
       }, 2000);
     } catch (error) {
       console.error('Payment failed:', error);
@@ -151,7 +157,7 @@ const PaymentPage = () => {
 
   if (!selectedPlan) {
     return (
-      <div className="pt-28 pb-10 min-h-screen bg-gray-50">
+      <div className="py-10 min-h-screen bg-gray-50 dark:bg-gray-950">
         <div className="container mx-auto px-4">
           <div className="text-center">
             <div className="animate-spin inline-block w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mb-4"></div>
@@ -163,27 +169,27 @@ const PaymentPage = () => {
   }
 
   return (
-    <div className="pt-28 pb-10 min-h-screen bg-gray-50">
+    <div className="py-10 min-h-screen bg-gray-50 dark:bg-gray-950">
       <div className="container mx-auto px-4">
         <div className="max-w-3xl mx-auto">
           <div className="mb-8 text-center">
-            <h1 className="text-3xl font-bold text-blue-900 mb-2">Complete Your Purchase</h1>
-            <p className="text-gray-600">You're just one step away from premium cricket insights</p>
+            <h1 className="text-3xl font-bold text-blue-900 dark:text-blue-300 mb-2">Complete Your Purchase</h1>
+            <p className="text-gray-600 dark:text-gray-400">You're just one step away from premium cricket insights</p>
           </div>
           
           {paymentSuccess ? (
-            <div className="bg-white rounded-lg shadow-md p-8 text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <div className="card p-8 text-center">
+              <div className="w-16 h-16 bg-green-100 dark:bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-green-500 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
                 </svg>
               </div>
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">Payment Successful!</h2>
-              <p className="text-gray-600 mb-4">Thank you for subscribing to StumpScore Premium!</p>
-              <p className="text-sm text-gray-500 mb-4">You will be redirected to your premium dashboard shortly...</p>
+              <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">Payment Successful!</h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">Thank you for subscribing to StumpScore Premium!</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">You will be redirected to your premium dashboard shortly...</p>
             </div>
           ) : (
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
+            <div className="card overflow-hidden">
               <div className="flex flex-col md:flex-row">
                 {/* Order summary */}
                 <div className="bg-blue-800 text-white p-6 md:w-2/5">
@@ -233,16 +239,16 @@ const PaymentPage = () => {
                 
                 {/* Payment form */}
                 <div className="p-6 md:w-3/5">
-                  <h2 className="text-xl font-bold text-gray-800 mb-4">Payment Details</h2>
+                  <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">Payment Details</h2>
                   
                   {paymentError && (
-                    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                    <div className="bg-red-100 dark:bg-rose-500/10 border border-red-400 text-red-700 dark:text-rose-400 px-4 py-3 rounded mb-4">
                       <p>{paymentError}</p>
                     </div>
                   )}
                   
                   <div className="mb-6">
-                    <h3 className="text-sm font-medium text-gray-700 mb-2">Payment Method</h3>
+                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Payment Method</h3>
                     <div className="grid grid-cols-2 gap-3">
                       {PAYMENT_METHODS.map(method => (
                         <button
@@ -250,8 +256,8 @@ const PaymentPage = () => {
                           type="button"
                           className={`flex items-center justify-center border rounded-md py-2 px-3 ${
                             selectedPaymentMethod === method.id 
-                              ? 'border-blue-500 bg-blue-50 text-blue-600' 
-                              : 'border-gray-300 hover:border-gray-400'
+                              ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400' 
+                              : 'border-gray-300 dark:border-gray-700 hover:border-gray-400'
                           }`}
                           onClick={() => setSelectedPaymentMethod(method.id)}
                         >
@@ -287,7 +293,7 @@ const PaymentPage = () => {
                     {selectedPaymentMethod === 'card' && (
                       <div className="space-y-4">
                         <div>
-                          <label htmlFor="cardNumber" className="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
+                          <label htmlFor="cardNumber" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Card Number</label>
                           <input
                             type="text"
                             id="cardNumber"
@@ -296,14 +302,14 @@ const PaymentPage = () => {
                             onChange={handleCardNumberChange}
                             placeholder="1234 5678 9012 3456"
                             maxLength="19"
-                            className={`w-full border ${errors.cardNumber ? 'border-red-500' : 'border-gray-300'} rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                            className={`w-full border ${errors.cardNumber ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'} rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500`}
                           />
-                          {errors.cardNumber && <p className="mt-1 text-sm text-red-600">{errors.cardNumber}</p>}
+                          {errors.cardNumber && <p className="mt-1 text-sm text-red-600 dark:text-rose-400">{errors.cardNumber}</p>}
                         </div>
                         
                         <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <label htmlFor="expiryDate" className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
+                            <label htmlFor="expiryDate" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Expiry Date</label>
                             <input
                               type="text"
                               id="expiryDate"
@@ -312,13 +318,13 @@ const PaymentPage = () => {
                               onChange={handleExpiryDateChange}
                               placeholder="MM/YY"
                               maxLength="5"
-                              className={`w-full border ${errors.expiryDate ? 'border-red-500' : 'border-gray-300'} rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                              className={`w-full border ${errors.expiryDate ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'} rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500`}
                             />
-                            {errors.expiryDate && <p className="mt-1 text-sm text-red-600">{errors.expiryDate}</p>}
+                            {errors.expiryDate && <p className="mt-1 text-sm text-red-600 dark:text-rose-400">{errors.expiryDate}</p>}
                           </div>
                           
                           <div>
-                            <label htmlFor="cvv" className="block text-sm font-medium text-gray-700 mb-1">CVV</label>
+                            <label htmlFor="cvv" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">CVV</label>
                             <input
                               type="text"
                               id="cvv"
@@ -327,14 +333,14 @@ const PaymentPage = () => {
                               onChange={handleInputChange}
                               placeholder="123"
                               maxLength="4"
-                              className={`w-full border ${errors.cvv ? 'border-red-500' : 'border-gray-300'} rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                              className={`w-full border ${errors.cvv ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'} rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500`}
                             />
-                            {errors.cvv && <p className="mt-1 text-sm text-red-600">{errors.cvv}</p>}
+                            {errors.cvv && <p className="mt-1 text-sm text-red-600 dark:text-rose-400">{errors.cvv}</p>}
                           </div>
                         </div>
                         
                         <div>
-                          <label htmlFor="cardholderName" className="block text-sm font-medium text-gray-700 mb-1">Cardholder Name</label>
+                          <label htmlFor="cardholderName" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Cardholder Name</label>
                           <input
                             type="text"
                             id="cardholderName"
@@ -342,9 +348,9 @@ const PaymentPage = () => {
                             value={formData.cardholderName}
                             onChange={handleInputChange}
                             placeholder="John Doe"
-                            className={`w-full border ${errors.cardholderName ? 'border-red-500' : 'border-gray-300'} rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                            className={`w-full border ${errors.cardholderName ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'} rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500`}
                           />
-                          {errors.cardholderName && <p className="mt-1 text-sm text-red-600">{errors.cardholderName}</p>}
+                          {errors.cardholderName && <p className="mt-1 text-sm text-red-600 dark:text-rose-400">{errors.cardholderName}</p>}
                         </div>
                         
                         <div className="flex items-center">
@@ -354,9 +360,9 @@ const PaymentPage = () => {
                             name="saveCard"
                             checked={formData.saveCard}
                             onChange={handleInputChange}
-                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            className="h-4 w-4 text-blue-600 dark:text-blue-400 focus:ring-blue-500 border-gray-300 dark:border-gray-700 rounded"
                           />
-                          <label htmlFor="saveCard" className="ml-2 block text-sm text-gray-700">
+                          <label htmlFor="saveCard" className="ml-2 block text-sm text-gray-700 dark:text-gray-200">
                             Save card for future payments
                           </label>
                         </div>
@@ -365,7 +371,7 @@ const PaymentPage = () => {
                     
                     {selectedPaymentMethod === 'upi' && (
                       <div className="text-center py-6">
-                        <div className="bg-gray-100 rounded-lg p-4 inline-block mb-4">
+                        <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 inline-block mb-4">
                           <svg className="w-20 h-20 mx-auto" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                             <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                             <path d="M8 7v10"></path>
@@ -374,8 +380,8 @@ const PaymentPage = () => {
                           </svg>
                         </div>
                         <p className="mb-2 font-medium">Scan QR Code with UPI App</p>
-                        <p className="text-sm text-gray-600 mb-4">or enter UPI ID: stumpscore@ybl</p>
-                        <p className="text-xs text-gray-500">*This is a mock UPI implementation</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">or enter UPI ID: stumpscore@ybl</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">*This is a mock UPI implementation</p>
                       </div>
                     )}
                     
@@ -384,7 +390,7 @@ const PaymentPage = () => {
                         <p className="mb-4">Click the button below to continue to {
                           selectedPaymentMethod === 'netbanking' ? 'Net Banking' : 'Wallet'
                         } payment page.</p>
-                        <p className="text-xs text-gray-500 mb-4">*This is a mock implementation</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">*This is a mock implementation</p>
                       </div>
                     )}
                     
@@ -405,8 +411,8 @@ const PaymentPage = () => {
                       </button>
                     </div>
                     
-                    <p className="mt-4 text-xs text-gray-500 text-center">
-                      By completing this purchase, you agree to our <Link to="/terms" className="text-blue-600 hover:underline">Terms of Service</Link> and <Link to="/privacy" className="text-blue-600 hover:underline">Privacy Policy</Link>.
+                    <p className="mt-4 text-xs text-gray-500 dark:text-gray-400 text-center">
+                      By completing this purchase, you agree to our <Link to="/terms" className="text-blue-600 dark:text-blue-400 hover:underline">Terms of Service</Link> and <Link to="/privacy" className="text-blue-600 dark:text-blue-400 hover:underline">Privacy Policy</Link>.
                     </p>
                   </form>
                 </div>
@@ -415,7 +421,7 @@ const PaymentPage = () => {
           )}
           
           <div className="mt-6 text-center">
-            <Link to="/premium" className="text-blue-600 hover:underline text-sm font-medium">
+            <Link to="/premium" className="text-blue-600 dark:text-blue-400 hover:underline text-sm font-medium">
               ← Back to Premium Plans
             </Link>
           </div>

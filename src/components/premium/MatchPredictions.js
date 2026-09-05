@@ -238,54 +238,54 @@ const MatchPredictions = () => {
 
   return (
     <div>
-      <h2 className="text-xl font-bold text-gray-800 mb-6">Match Predictions</h2>
+      <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-6">Match Predictions</h2>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Match List */}
         <div className="lg:col-span-1">
-          <div className="bg-gray-50 rounded-lg border border-gray-200 overflow-hidden">
-            <div className="p-4 bg-gray-100 border-b border-gray-200">
-              <h3 className="font-medium text-gray-800">Upcoming Matches</h3>
+          <div className="bg-gray-50 dark:bg-gray-800/60 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
+            <div className="p-4 bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-800">
+              <h3 className="font-medium text-gray-800 dark:text-gray-100">Upcoming Matches</h3>
             </div>
             <div className="overflow-y-auto max-h-[500px]">
-              <ul className="divide-y divide-gray-200">
+              <ul className="divide-y divide-gray-200 dark:divide-gray-700">
                 {matches.map(match => (
                   <li 
                     key={match.id}
-                    className={`cursor-pointer hover:bg-blue-50 transition-colors ${selectedMatch?.id === match.id ? 'bg-blue-50' : ''}`}
+                    className={`cursor-pointer hover:bg-blue-50 transition-colors ${selectedMatch?.id === match.id ? 'bg-blue-50 dark:bg-blue-500/10' : ''}`}
                     onClick={() => setSelectedMatch(match)}
                   >
                     <div className="p-4">
                       <div className="flex justify-between items-center mb-2">
                         <div className="flex items-center">
                           {match.status === 'live' ? (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 dark:bg-emerald-500/10 text-green-800 dark:text-emerald-400">
                               <span className="w-2 h-2 bg-green-500 rounded-full mr-1 animate-pulse"></span>
                               LIVE
                             </span>
                           ) : (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 dark:bg-blue-500/15 text-blue-800 dark:text-blue-300">
                               {match.date}
                             </span>
                           )}
                         </div>
-                        <span className="text-xs text-gray-500">{match.time}</span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">{match.time}</span>
                       </div>
                       <div className="flex justify-between items-center">
                         <div className="flex items-center space-x-2">
                           <span className="text-xl">{match.homeTeam.flag}</span>
-                          <span className="font-medium text-gray-800">{match.homeTeam.name}</span>
+                          <span className="font-medium text-gray-800 dark:text-gray-100">{match.homeTeam.name}</span>
                         </div>
-                        <span className="text-sm font-bold text-blue-600">{match.homeTeam.winProbability}%</span>
+                        <span className="text-sm font-bold text-blue-600 dark:text-blue-400">{match.homeTeam.winProbability}%</span>
                       </div>
                       <div className="flex justify-between items-center mt-1">
                         <div className="flex items-center space-x-2">
                           <span className="text-xl">{match.awayTeam.flag}</span>
-                          <span className="font-medium text-gray-800">{match.awayTeam.name}</span>
+                          <span className="font-medium text-gray-800 dark:text-gray-100">{match.awayTeam.name}</span>
                         </div>
-                        <span className="text-sm font-bold text-blue-600">{match.awayTeam.winProbability}%</span>
+                        <span className="text-sm font-bold text-blue-600 dark:text-blue-400">{match.awayTeam.winProbability}%</span>
                       </div>
-                      <div className="text-xs text-gray-500 mt-2">
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                         {match.format} • {match.venue}
                       </div>
                     </div>
@@ -299,20 +299,20 @@ const MatchPredictions = () => {
         {/* Prediction Details */}
         <div className="lg:col-span-2">
           {selectedMatch ? (
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+            <div className="card overflow-hidden">
               <div className="p-6">
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-lg font-bold text-gray-800">
+                  <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100">
                     {selectedMatch.homeTeam.name} vs {selectedMatch.awayTeam.name}
                   </h3>
                   <div className="flex items-center">
                     {selectedMatch.status === 'live' ? (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-emerald-500/10 text-green-800 dark:text-emerald-400">
                         <span className="w-2 h-2 bg-green-500 rounded-full mr-1 animate-pulse"></span>
                         LIVE
                       </span>
                     ) : (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-500/15 text-blue-800 dark:text-blue-300">
                         UPCOMING
                       </span>
                     )}
@@ -321,26 +321,26 @@ const MatchPredictions = () => {
                 
                 <div className="flex items-center justify-center mb-8">
                   <div className="flex flex-col items-center w-1/3">
-                    <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center text-4xl mb-2">
+                    <div className="w-20 h-20 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-4xl mb-2">
                       {selectedMatch.homeTeam.flag}
                     </div>
-                    <h4 className="font-bold text-gray-800">{selectedMatch.homeTeam.name}</h4>
+                    <h4 className="font-bold text-gray-800 dark:text-gray-100">{selectedMatch.homeTeam.name}</h4>
                   </div>
                   
                   <div className="w-1/3">
                     <div className="relative pt-1">
                       <div className="flex mb-2 items-center justify-between">
                         <div>
-                          <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full bg-blue-100 text-blue-800">
+                          <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full bg-blue-100 dark:bg-blue-500/15 text-blue-800 dark:text-blue-300">
                             Win Probability
                           </span>
                         </div>
                       </div>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-bold text-blue-700">{selectedMatch.homeTeam.winProbability}%</span>
-                        <span className="text-xs font-bold text-blue-700">{selectedMatch.awayTeam.winProbability}%</span>
+                        <span className="text-xs font-bold text-blue-700 dark:text-blue-300">{selectedMatch.homeTeam.winProbability}%</span>
+                        <span className="text-xs font-bold text-blue-700 dark:text-blue-300">{selectedMatch.awayTeam.winProbability}%</span>
                       </div>
-                      <div className="overflow-hidden h-2 text-xs flex rounded bg-gray-200">
+                      <div className="overflow-hidden h-2 text-xs flex rounded bg-gray-200 dark:bg-gray-700">
                         <div
                           style={{ width: `${selectedMatch.homeTeam.winProbability}%` }}
                           className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-600"
@@ -350,45 +350,45 @@ const MatchPredictions = () => {
                   </div>
                   
                   <div className="flex flex-col items-center w-1/3">
-                    <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center text-4xl mb-2">
+                    <div className="w-20 h-20 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-4xl mb-2">
                       {selectedMatch.awayTeam.flag}
                     </div>
-                    <h4 className="font-bold text-gray-800">{selectedMatch.awayTeam.name}</h4>
+                    <h4 className="font-bold text-gray-800 dark:text-gray-100">{selectedMatch.awayTeam.name}</h4>
                   </div>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Match Details */}
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h4 className="font-semibold text-gray-800 mb-3">Match Details</h4>
+                  <div className="bg-gray-50 dark:bg-gray-800/60 rounded-lg p-4">
+                    <h4 className="font-semibold text-gray-800 dark:text-gray-100 mb-3">Match Details</h4>
                     <ul className="space-y-2 text-sm">
                       <li className="flex items-start">
-                        <span className="text-gray-600 w-20 flex-shrink-0">Format:</span>
-                        <span className="font-medium text-gray-800">{selectedMatch.format}</span>
+                        <span className="text-gray-600 dark:text-gray-400 w-20 flex-shrink-0">Format:</span>
+                        <span className="font-medium text-gray-800 dark:text-gray-100">{selectedMatch.format}</span>
                       </li>
                       <li className="flex items-start">
-                        <span className="text-gray-600 w-20 flex-shrink-0">Series:</span>
-                        <span className="font-medium text-gray-800">{selectedMatch.series}</span>
+                        <span className="text-gray-600 dark:text-gray-400 w-20 flex-shrink-0">Series:</span>
+                        <span className="font-medium text-gray-800 dark:text-gray-100">{selectedMatch.series}</span>
                       </li>
                       <li className="flex items-start">
-                        <span className="text-gray-600 w-20 flex-shrink-0">Venue:</span>
-                        <span className="font-medium text-gray-800">{selectedMatch.venue}</span>
+                        <span className="text-gray-600 dark:text-gray-400 w-20 flex-shrink-0">Venue:</span>
+                        <span className="font-medium text-gray-800 dark:text-gray-100">{selectedMatch.venue}</span>
                       </li>
                       <li className="flex items-start">
-                        <span className="text-gray-600 w-20 flex-shrink-0">Date & Time:</span>
-                        <span className="font-medium text-gray-800">{selectedMatch.date}, {selectedMatch.time}</span>
+                        <span className="text-gray-600 dark:text-gray-400 w-20 flex-shrink-0">Date & Time:</span>
+                        <span className="font-medium text-gray-800 dark:text-gray-100">{selectedMatch.date}, {selectedMatch.time}</span>
                       </li>
                     </ul>
                   </div>
                   
                   {/* Prediction Factors */}
-                  <div className="bg-blue-50 rounded-lg p-4">
-                    <h4 className="font-semibold text-gray-800 mb-3">Key Prediction Factors</h4>
+                  <div className="bg-blue-50 dark:bg-blue-500/10 rounded-lg p-4">
+                    <h4 className="font-semibold text-gray-800 dark:text-gray-100 mb-3">Key Prediction Factors</h4>
                     <ul className="space-y-2 text-sm">
                       {selectedMatch.predictionDetails.keyFactors.map((factor, index) => (
                         <li key={index} className="flex items-start">
-                          <span className="text-blue-600 mr-2">•</span>
-                          <span className="text-gray-800">{factor}</span>
+                          <span className="text-blue-600 dark:text-blue-400 mr-2">•</span>
+                          <span className="text-gray-800 dark:text-gray-100">{factor}</span>
                         </li>
                       ))}
                     </ul>
@@ -396,27 +396,27 @@ const MatchPredictions = () => {
                 </div>
                 
                 {/* Player to Watch */}
-                <div className="mt-6 bg-yellow-50 rounded-lg p-4">
-                  <h4 className="font-semibold text-gray-800 mb-2">Player to Watch</h4>
+                <div className="mt-6 bg-yellow-50 dark:bg-amber-500/10 rounded-lg p-4">
+                  <h4 className="font-semibold text-gray-800 dark:text-gray-100 mb-2">Player to Watch</h4>
                   <div className="flex items-center">
-                    <div className="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center text-2xl mr-3">
+                    <div className="w-12 h-12 rounded-full bg-yellow-100 dark:bg-amber-500/10 flex items-center justify-center text-2xl mr-3">
                       👨‍🏏
                     </div>
                     <div>
-                      <p className="font-medium text-gray-800">{selectedMatch.predictionDetails.playerToWatch.name} ({selectedMatch.predictionDetails.playerToWatch.team})</p>
-                      <p className="text-sm text-gray-700">{selectedMatch.predictionDetails.playerToWatch.prediction}</p>
+                      <p className="font-medium text-gray-800 dark:text-gray-100">{selectedMatch.predictionDetails.playerToWatch.name} ({selectedMatch.predictionDetails.playerToWatch.team})</p>
+                      <p className="text-sm text-gray-700 dark:text-gray-200">{selectedMatch.predictionDetails.playerToWatch.prediction}</p>
                     </div>
                   </div>
                 </div>
                 
-                <div className="mt-6 text-xs text-gray-500">
+                <div className="mt-6 text-xs text-gray-500 dark:text-gray-400">
                   <p>Predictions are based on our AI algorithms analyzing historical data, player form, pitch conditions, and other factors. Predictions are for entertainment purposes only.</p>
                 </div>
               </div>
             </div>
           ) : (
-            <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
-              <p className="text-gray-600">Select a match to view detailed prediction</p>
+            <div className="card p-8 text-center">
+              <p className="text-gray-600 dark:text-gray-400">Select a match to view detailed prediction</p>
             </div>
           )}
         </div>

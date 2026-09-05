@@ -1,8 +1,6 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
 import MatchDetail from '../components/MatchDetail';
 import { fetchMatchDetails } from '../services/cricketApi';
 
@@ -37,13 +35,11 @@ const MatchDetailsPage = () => {
   
   return (
     <div className="min-h-screen flex flex-col">
-      <Header />
-      
-      <main className="flex-grow pt-20 pb-12 bg-gray-50">
+      <main className="flex-grow py-8 bg-gray-50 dark:bg-gray-950">
         <div className="container mx-auto px-4">
           <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-800">Match Details</h1>
-            <p className="text-gray-600">Live cricket score and detailed match information</p>
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Match Details</h1>
+            <p className="text-gray-600 dark:text-gray-400">Live cricket score and detailed match information</p>
           </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -55,23 +51,23 @@ const MatchDetailsPage = () => {
             {/* Sidebar */}
             <div className="space-y-6">
               {/* Match Info Card */}
-              <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="card p-6">
                 <h3 className="text-lg font-semibold mb-4 border-b pb-2">Match Information</h3>
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Series</span>
+                    <span className="text-gray-600 dark:text-gray-400">Series</span>
                     <span className="font-medium">{isLoading ? 'Loading...' : matchInfo?.series || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Venue</span>
+                    <span className="text-gray-600 dark:text-gray-400">Venue</span>
                     <span className="font-medium">{isLoading ? 'Loading...' : matchInfo?.venue || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Date & Time</span>
+                    <span className="text-gray-600 dark:text-gray-400">Date & Time</span>
                     <span className="font-medium">{isLoading ? 'Loading...' : matchInfo?.date || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Toss</span>
+                    <span className="text-gray-600 dark:text-gray-400">Toss</span>
                     <span className="font-medium">
                       {isLoading ? 'Loading...' : 
                         (matchInfo?.toss ? 
@@ -80,37 +76,43 @@ const MatchDetailsPage = () => {
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Umpires</span>
-                    <span className="font-medium">{isLoading ? 'Loading...' : (matchInfo?.umpires ? matchInfo.umpires.join(', ') : 'N/A')}</span>
+                    <span className="text-gray-600 dark:text-gray-400">Umpires</span>
+                    <span className="font-medium">
+                      {isLoading
+                        ? 'Loading...'
+                        : (matchInfo?.umpires
+                            ? (Array.isArray(matchInfo.umpires) ? matchInfo.umpires.join(', ') : String(matchInfo.umpires))
+                            : 'N/A')}
+                    </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Referee</span>
+                    <span className="text-gray-600 dark:text-gray-400">Referee</span>
                     <span className="font-medium">{isLoading ? 'Loading...' : matchInfo?.referee || 'N/A'}</span>
                   </div>
                 </div>
               </div>
               
               {/* Key Stats Card */}
-              <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="card p-6">
                 <h3 className="text-lg font-semibold mb-4 border-b pb-2">Key Stats</h3>
                 {isLoading ? (
-                  <p className="text-gray-500 text-sm">Loading stats...</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm">Loading stats...</p>
                 ) : (
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Highest Score</span>
+                      <span className="text-gray-600 dark:text-gray-400">Highest Score</span>
                       <span className="font-medium">
                         {matchInfo?.stats?.highestScore || 'N/A'}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Most Wickets</span>
+                      <span className="text-gray-600 dark:text-gray-400">Most Wickets</span>
                       <span className="font-medium">
                         {matchInfo?.stats?.mostWickets || 'N/A'}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Run Rate</span>
+                      <span className="text-gray-600 dark:text-gray-400">Run Rate</span>
                       <span className="font-medium">
                         {matchInfo?.stats?.runRate || (matchInfo?.score?.[0]?.r && matchInfo?.score?.[0]?.o ? 
                           (matchInfo.score[0].r / parseFloat(matchInfo.score[0].o)).toFixed(2) : 'N/A')}
@@ -121,10 +123,10 @@ const MatchDetailsPage = () => {
               </div>
               
               {/* Head to Head Card */}
-              <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="card p-6">
                 <h3 className="text-lg font-semibold mb-4 border-b pb-2">Head to Head</h3>
                 {isLoading ? (
-                  <p className="text-gray-500 text-sm">Loading head to head stats...</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm">Loading head to head stats...</p>
                 ) : (
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
@@ -148,11 +150,11 @@ const MatchDetailsPage = () => {
                     </div>
                     
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">No Result</span>
+                      <span className="text-gray-600 dark:text-gray-400">No Result</span>
                       <span className="font-bold">{matchInfo?.headToHead?.noResults || '0'}</span>
                     </div>
                     
-                    <div className="text-center text-sm text-gray-500 mt-2">
+                    <div className="text-center text-sm text-gray-500 dark:text-gray-400 mt-2">
                       Last 10 matches
                     </div>
                   </div>
@@ -162,8 +164,6 @@ const MatchDetailsPage = () => {
           </div>
         </div>
       </main>
-      
-      <Footer />
     </div>
   );
 };

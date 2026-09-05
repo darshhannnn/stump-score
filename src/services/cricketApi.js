@@ -1,243 +1,225 @@
 import { scrapeLiveMatches, scrapeMatchDetails } from './cricketScraper';
+import { RAPID_API_CONFIG } from './rapidApiConfig';
 
-// Cricket API service for StumpScore
-// Using real API with fallback to web scraping
+// ===== PRIMARY: CricAPI (free: 100 req/day) =====
+// Key is configured via REACT_APP_CRICAPI_KEY in .env
+const CRICAPI_KEY = process.env.REACT_APP_CRICAPI_KEY || '8c428c05-056e-4d3b-9471-24956c550f47';
+const CRICAPI_URL = 'https://api.cricapi.com/v1';
 
-/* eslint-disable import/no-anonymous-default-export */
-/* eslint-disable no-unused-vars */
+const logInfo = (msg, data) => console.log(`[CricketAPI] ${msg}`, data || '');
+const logError = (msg, err) => console.error(`[CricketAPI] ${msg}`, err || '');
 
-const API_KEY = '8c428c05-056e-4d3b-9471-24956c550f47'; // Use the key found in HomePage.js which seems to be the active one
-const BASE_URL = 'https://api.cricapi.com/v1';
+// ===== API Request Helpers =====
 
-// Configuration for web scraping service
-const ENABLE_LOGGING = true; // Enable/disable logging
-
-// Cache settings
-const CACHE_EXPIRY = 5 * 60 * 1000; // 5 minutes in milliseconds
-
-const jsonRequest = async (url, { method = 'GET', headers = {}, params } = {}) => {
-  const fullUrl = (() => {
-    if (!params) return url;
-    const u = new URL(url);
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) u.searchParams.set(key, String(value));
-    });
-    return u.toString();
-  })();
-
-  const response = await fetch(fullUrl, {
-    method,
-    headers
+const fetchCricAPI = async (endpoint, params = {}) => {
+  const url = new URL(`${CRICAPI_URL}${endpoint}`);
+  url.searchParams.set('apikey', CRICAPI_KEY);
+  Object.entries(params).forEach(([k, v]) => {
+    if (v !== undefined && v !== null) url.searchParams.set(k, String(v));
   });
 
-  const contentType = response.headers.get('content-type') || '';
-  const data = contentType.includes('application/json') ? await response.json() : await response.text();
+  const response = await fetch(url.toString());
+  const data = await response.json();
 
-  if (!response.ok) {
-    const err = new Error('Request failed');
-    err.response = { data };
-    throw err;
+  if (!response.ok || data.status !== 'success') {
+    throw new Error(data.info || 'CricAPI failed');
+  }
+  return data;
+};
+
+const fetchRapidAPI = async (endpoint) => {
+  const apiKey = RAPID_API_CONFIG.apiKey;
+  if (!apiKey) throw new Error('No RapidAPI key configured');
+
+  const response = await fetch(`${RAPID_API_CONFIG.baseUrl}${endpoint}`, {
+    headers: RAPID_API_CONFIG.headers
+  });
+
+  if (!response.ok) throw new Error(`RapidAPI failed: ${response.status}`);
+  return await response.json();
+};
+
+// ===== Score Parsing =====
+
+const parseScore = (scoreArr, index) => {
+  if (!scoreArr || !scoreArr[index]) return { r: 0, w: 0, o: '0.0' };
+  const s = scoreArr[index];
+
+  if (typeof s === 'object' && s !== null) {
+    return { r: s.r || 0, w: s.w || 0, o: s.o || '0.0' };
   }
 
-  return { data };
-};
-
-// In-memory cache for match data
-let matchesCache = {
-  data: [],
-  timestamp: null
-};
-
-// In-memory cache for match details
-let matchDetailsCache = {};
-
-// Helper function to log activity if enabled
-const logInfo = (message, data = null) => {
-  if (ENABLE_LOGGING) {
-    if (data) {
-      console.log(message, data);
-    } else {
-      console.log(message);
-    }
+  if (typeof s === 'string') {
+    const r = s.match(/r=(\d+)/);
+    const w = s.match(/w=(\d+)/);
+    const o = s.match(/o=([\d.]+)/);
+    return {
+      r: r ? parseInt(r[1]) : 0,
+      w: w ? parseInt(w[1]) : 0,
+      o: o ? o[1] : '0.0'
+    };
   }
+
+  return { r: 0, w: 0, o: '0.0' };
 };
 
-// Helper function to log errors
-const logError = (message, error = null) => {
-  console.error(message, error || '');
+const parseTeamInfo = (teamInfoArr, index) => {
+  if (!teamInfoArr || !teamInfoArr[index]) return null;
+  const t = teamInfoArr[index];
+
+  if (typeof t === 'object' && t !== null && t.name) {
+    return {
+      name: t.name,
+      short_name: t.shortname || t.name.substring(0, 3).toUpperCase(),
+      logo: t.img || `https://ui-avatars.com/api/?name=${t.name.substring(0, 3)}&background=0D47A1&color=fff&size=100`
+    };
+  }
+
+  if (typeof t === 'string') {
+    const nameMatch = t.match(/name=([^;]+)/);
+    const shortMatch = t.match(/shortname=([^;]+)/);
+    const imgMatch = t.match(/img=([^}]+)/);
+    const name = nameMatch ? nameMatch[1].trim() : `Team ${index + 1}`;
+    return {
+      name,
+      short_name: shortMatch ? shortMatch[1].trim() : name.substring(0, 3).toUpperCase(),
+      logo: imgMatch ? imgMatch[1].trim() : `https://ui-avatars.com/api/?name=${name.substring(0, 3)}&background=0D47A1&color=fff&size=100`
+    };
+  }
+
+  return null;
 };
 
-/**
- * Fetch current live matches from CricketData API
- * Falls back to web scraping if API fails or returns no data
- */
-export const fetchCurrentMatches = async (forceRefresh = false, timestamp = null) => {
+const generateStatusMessage = (match, t1s, t2s, t1n, t2n) => {
+  if (match.matchEnded) return match.status;
+  if (match.status?.toLowerCase().includes('opt to') || match.status?.toLowerCase().includes('elected')) return match.status;
+  if (!t1s.r && !t2s.r) return 'Match not started';
+  if (!t2s.r && t1s.r > 0) return `${t1n}: ${t1s.r}/${t1s.w} (${t1s.o}) - Waiting for second innings`;
+
+  const diff = Math.abs(t1s.r - t2s.r);
+  const ballsLeft = Math.max(0, (20 - parseFloat(t2s.o)) * 6);
+
+  if (t1s.r > t2s.r) return `${t2n} needs ${diff + 1} runs from ${Math.floor(ballsLeft)} balls`;
+  if (t2s.r > t1s.r) return `${t1n} needs ${t2s.r - t1s.r + 1} runs from ${Math.floor(ballsLeft)} balls`;
+  return 'Scores are level';
+};
+
+const mapCricAPIMatch = (match) => {
+  const t1 = parseTeamInfo(match.teamInfo, 0) || { name: match.teams?.[0] || 'Team 1', short_name: 'T1', logo: '' };
+  const t2 = parseTeamInfo(match.teamInfo, 1) || { name: match.teams?.[1] || 'Team 2', short_name: 'T2', logo: '' };
+  const s1 = parseScore(match.score, 0);
+  const s2 = parseScore(match.score, 1);
+  const isLive = !match.matchEnded && match.matchStarted;
+  const isComplete = match.matchEnded;
+
+  return {
+    id: match.id,
+    name: match.name,
+    status: isLive ? 'LIVE' : isComplete ? 'COMPLETED' : 'UPCOMING',
+    venue: match.venue || 'International Ground',
+    series: match.name?.split(',').pop()?.trim() || 'Cricket',
+    matchType: match.matchType,
+    date: match.date,
+    dateTimeGMT: match.dateTimeGMT,
+    team1: { ...t1, score: s1.r, wickets: s1.w, overs: s1.o },
+    team2: { ...t2, score: s2.r, wickets: s2.w, overs: s2.o },
+    currentStatus: generateStatusMessage(match, s1, s2, t1.name, t2.name)
+  };
+};
+
+// ===== Main Fetch Function =====
+
+export const fetchCurrentMatches = async () => {
+  // Source 1: CricAPI
   try {
-    console.log('Fetching live matches from real API...');
+    logInfo('Fetching from CricAPI...');
+    const data = await fetchCricAPI('/currentMatches', { offset: 0 });
+    if (data.data && data.data.length > 0) {
+      logInfo(`CricAPI: ${data.data.length} matches`);
+      return data.data.map(mapCricAPIMatch);
+    }
+  } catch (e) {
+    logError('CricAPI failed:', e.message);
+  }
 
-    // Attempt to fetch from real API
-    const response = await jsonRequest(`${BASE_URL}/currentMatches`, {
-      method: 'GET',
-      params: {
-        apikey: API_KEY,
-        offset: 0
-      }
-    });
-
-    if (response.data && response.data.status === 'success' && response.data.data && response.data.data.length > 0) {
-      console.log('Real API data received successfully');
-
-      // Map real API data to our application format
-      const matches = response.data.data.map(match => ({
-        id: match.id,
-        status: match.status.includes('Live') ? 'LIVE' : match.status,
-        venue: match.venue || 'International Ground',
+  // Source 2: RapidAPI (Cricbuzz)
+  try {
+    logInfo('Fetching from RapidAPI...');
+    const data = await fetchRapidAPI(RAPID_API_CONFIG.endpoints.liveScores);
+    if (data && data.length > 0) {
+      logInfo(`RapidAPI: ${data.length} matches`);
+      return data.map(m => ({
+        id: m.id || m.matchId || `rapid-${Date.now()}`,
+        name: m.matchTitle || m.title || `${m.team1?.name || 'T1'} vs ${m.team2?.name || 'T2'}`,
+        status: m.status?.includes('Live') || m.matchStarted ? 'LIVE' : 'COMPLETED',
+        venue: m.venue || m.ground || 'International Ground',
+        series: m.series || m.seriesName || 'Cricket',
+        matchType: m.matchType || m.format || 't20',
         team1: {
-          name: match.teamInfo?.[0]?.name || 'Team 1',
-          short_name: match.teamInfo?.[0]?.shortname || match.teamInfo?.[0]?.name?.substring(0, 3).toUpperCase() || 'T1',
-          logo: match.teamInfo?.[0]?.img || `https://ui-avatars.com/api/?name=${match.teamInfo?.[0]?.name}&background=0D47A1&color=fff&size=100`,
-          score: match.score?.[0]?.r || 0,
-          wickets: match.score?.[0]?.w || 0,
-          overs: match.score?.[0]?.o || '0.0'
+          name: m.team1?.name || m.homeTeam || 'Team 1',
+          short_name: m.team1?.shortName || 'T1',
+          logo: m.team1?.logo || '',
+          score: m.team1?.score || m.homeScore || 0,
+          wickets: m.team1?.wickets || 0,
+          overs: m.team1?.overs || '0.0'
         },
         team2: {
-          name: match.teamInfo?.[1]?.name || 'Team 2',
-          short_name: match.teamInfo?.[1]?.shortname || match.teamInfo?.[1]?.name?.substring(0, 3).toUpperCase() || 'T2',
-          logo: match.teamInfo?.[1]?.img || `https://ui-avatars.com/api/?name=${match.teamInfo?.[1]?.name}&background=FFC107&color=000&size=100`,
-          score: match.score?.[1]?.r || 0,
-          wickets: match.score?.[1]?.w || 0,
-          overs: match.score?.[1]?.o || '0.0'
+          name: m.team2?.name || m.awayTeam || 'Team 2',
+          short_name: m.team2?.shortName || 'T2',
+          logo: m.team2?.logo || '',
+          score: m.team2?.score || m.awayScore || 0,
+          wickets: m.team2?.wickets || 0,
+          overs: m.team2?.overs || '0.0'
         },
-        currentStatus: match.status
+        currentStatus: m.status || m.statusText || 'Match in progress'
       }));
-
-      // Update the cache
-      matchesCache.data = matches;
-      matchesCache.timestamp = Date.now();
-
-      return matches;
-    } else {
-      console.warn('Real API returned no live matches or failed. Falling back to scraper...');
-      return await scrapeLiveMatches();
     }
-  } catch (error) {
-    console.error('API Fetch error:', error.message);
-    console.log('Falling back to web scraping dynamic mock engine...');
-    return await scrapeLiveMatches();
+  } catch (e) {
+    logError('RapidAPI failed:', e.message);
   }
+
+  // Source 3: Scraper fallback
+  logInfo('All APIs failed, using scraper...');
+  return await scrapeLiveMatches();
 };
 
-/**
- * Fetch detailed information for a specific match
- */
 export const fetchMatchDetails = async (matchId) => {
+  // Source 1: CricAPI
   try {
-    console.log(`Fetching details for match ${matchId} from real API...`);
+    logInfo(`Fetching match details from CricAPI: ${matchId}`);
+    const data = await fetchCricAPI('/match_info', { id: matchId });
+    if (data.data) {
+      const m = data.data;
+      const t1 = parseTeamInfo(m.teamInfo, 0) || { name: 'Team 1', short_name: 'T1', logo: '' };
+      const t2 = parseTeamInfo(m.teamInfo, 1) || { name: 'Team 2', short_name: 'T2', logo: '' };
+      const s1 = parseScore(m.score, 0);
+      const s2 = parseScore(m.score, 1);
 
-    // Attempt to fetch details from real API
-    const response = await jsonRequest(`${BASE_URL}/match_info`, {
-      method: 'GET',
-      params: {
-        apikey: API_KEY,
-        id: matchId
-      }
-    });
-
-    if (response.data && response.data.status === 'success' && response.data.data) {
-      const match = response.data.data;
-
-      // Map to our detailed format
-      const matchDetails = {
-        id: match.id,
-        status: match.status,
-        venue: match.venue,
-        teams: [match.teamInfo?.[0]?.name, match.teamInfo?.[1]?.name],
-        score: [
-          { r: match.score?.[0]?.r || 0, w: match.score?.[0]?.w || 0, o: match.score?.[0]?.o || '0.0' },
-          { r: match.score?.[1]?.r || 0, w: match.score?.[1]?.w || 0, o: match.score?.[1]?.o || '0.0' }
-        ],
-        toss: {
-          winner: match.tossWinner || 'TBD',
-          decision: match.tossChoice || 'bat'
-        },
-        players: {
-          batting: [], // Real API often requires separate calls for full scorecard
-          bowling: []
-        },
-        currentStatus: match.status
+      return {
+        id: m.id,
+        name: m.name,
+        status: m.matchEnded ? 'COMPLETED' : m.matchStarted ? 'LIVE' : 'UPCOMING',
+        venue: m.venue,
+        series: m.name,
+        teams: [t1.name, t2.name],
+        score: [{ r: s1.r, w: s1.w, o: s1.o }, { r: s2.r, w: s2.w, o: s2.o }],
+        team1: { ...t1, score: s1.r, wickets: s1.w, overs: s1.o },
+        team2: { ...t2, score: s2.r, wickets: s2.w, overs: s2.o },
+        toss: { winner: m.tossWinner || 'TBD', decision: m.tossChoice || 'bat' },
+        currentStatus: generateStatusMessage(m, s1, s2, t1.name, t2.name)
       };
-
-      // Update the cache
-      matchDetailsCache[matchId] = {
-        data: matchDetails,
-        timestamp: Date.now()
-      };
-      
-      return matchDetails;
-    } else {
-      return await scrapeMatchDetails(matchId);
     }
-  } catch (error) {
-    console.error('API Match Details error:', error.message);
-    return await scrapeMatchDetails(matchId);
+  } catch (e) {
+    logError('CricAPI match details failed:', e.message);
   }
+
+  return await scrapeMatchDetails(matchId);
 };
 
-/**
- * Get featured match - returns the first match or null if no matches
- * @param {Array} matches - Array of matches to find featured match from
- * @returns {Object|null} Featured match object or null
- */
 export const getFeaturedMatch = (matches) => {
-  if (!matches || matches.length === 0) {
-    return null;
-  }
-  
-  // Find a live match if possible
-  const liveMatch = matches.find(match => 
-    match.status === 'LIVE' || 
-    match.status === 'In Progress' || 
-    match.status.toLowerCase().includes('live'));
-  
-  // Return the live match if found, otherwise the first match
-  return liveMatch || matches[0];
+  if (!matches || !matches.length) return null;
+  return matches.find(m => m.status === 'LIVE') || matches[0];
 };
 
-/**
- * Clear the cache to force fresh data on next fetch
- */
-export const clearCache = () => {
-  logInfo('Clearing cache...');
-  matchesCache = {
-    data: [],
-    timestamp: null
-  };
-  matchDetailsCache = {};
-  logInfo('Cache cleared');
-};
-
-/**
- * Test the scraper connection - use this for debugging
- * @returns {Promise<boolean>} True if scraper is working
- */
-export const testScraperConnection = async () => {
-  try {
-    logInfo('Testing scraper connection...');
-    const { scrapeLiveMatches } = await import('./cricketScraper');
-    const testData = await scrapeLiveMatches();
-    logInfo('Scraper connection test result:', testData ? 'Success' : 'Failed');
-    return !!testData;
-  } catch (error) {
-    logError('Scraper connection test failed:', error);
-    return false;
-  }
-};
-
-// Default export for legacy support
-export default {
-  fetchCurrentMatches,
-  fetchMatchDetails,
-  getFeaturedMatch,
-  clearCache,
-  testScraperConnection
-};
+const cricketApi = { fetchCurrentMatches, fetchMatchDetails, getFeaturedMatch };
+export default cricketApi;

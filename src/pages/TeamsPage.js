@@ -1,167 +1,75 @@
 import React, { useState, useEffect } from 'react';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
-/* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable no-unused-vars */
-// Using mock data only, no API imports needed
+import { Link } from 'react-router-dom';
+import TEAMS from '../data/teams';
 
 const TeamsPage = () => {
-  const [teams, setTeams] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  // Mock team data in case API fails
-  const mockTeams = [
-    {
-      id: 1,
-      name: 'India',
-      shortname: 'IND',
-      logo: 'https://placehold.co/400x300/blue/white?text=India+Team',
-      ranking: 2,
-      captain: 'Rohit Sharma',
-      coach: 'Rahul Dravid',
-      matches: 578,
-      worldCups: 2
-    },
-    {
-      id: 2,
-      name: 'Australia',
-      shortname: 'AUS',
-      logo: 'https://placehold.co/400x300/yellow/black?text=Australia+Team',
-      ranking: 1,
-      captain: 'Pat Cummins',
-      coach: 'Andrew McDonald',
-      matches: 845,
-      worldCups: 5
-    },
-    {
-      id: 3,
-      name: 'England',
-      shortname: 'ENG',
-      logo: 'https://placehold.co/400x300/blue/white?text=England+Team',
-      ranking: 3,
-      captain: 'Jos Buttler',
-      coach: 'Brendon McCullum',
-      matches: 1058,
-      worldCups: 1
-    },
-    {
-      id: 4,
-      name: 'New Zealand',
-      shortname: 'NZ',
-      logo: 'https://placehold.co/400x300/black/white?text=New+Zealand+Team',
-      ranking: 4,
-      captain: 'Kane Williamson',
-      coach: 'Gary Stead',
-      matches: 462,
-      worldCups: 0
-    },
-    {
-      id: 5,
-      name: 'Pakistan',
-      shortname: 'PAK',
-      logo: 'https://placehold.co/400x300/green/white?text=Pakistan+Team',
-      ranking: 5,
-      captain: 'Babar Azam',
-      coach: 'Gary Kirsten',
-      matches: 445,
-      worldCups: 1
-    },
-    {
-      id: 6,
-      name: 'South Africa',
-      shortname: 'SA',
-      logo: 'https://placehold.co/400x300/green/yellow?text=South+Africa+Team',
-      ranking: 6,
-      captain: 'Temba Bavuma',
-      coach: 'Rob Walter',
-      matches: 452,
-      worldCups: 0
-    }
-  ];
 
   useEffect(() => {
-    const fetchTeams = async () => {
-      try {
-        setIsLoading(true);
-        // In a real implementation, we would fetch team data from the API
-        // For now, we'll use mock data since the API doesn't have a direct endpoint for all teams
-        
-        // Simulating API call delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        setTeams(mockTeams);
-        setError(null);
-      } catch (err) {
-        console.error('Error fetching teams:', err);
-        setError('Failed to load team data. Please try again later.');
-        setTeams(mockTeams); // Fallback to mock data
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchTeams();
+    // Brief delay so the loading state is perceivable (teams are local data)
+    const t = setTimeout(() => setIsLoading(false), 500);
+    return () => clearTimeout(t);
   }, []);
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Header />
-      
-      <main className="flex-grow pt-20 pb-12 bg-gray-50">
+      <main className="flex-grow py-8 bg-gray-50 dark:bg-gray-950 transition-colors">
         <div className="container mx-auto px-4">
           <div className="mb-8 text-center">
-            <h1 className="text-3xl font-bold text-gray-800 mb-4">Cricket Teams</h1>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Explore top cricket teams from around the world competing at the highest level.
+            <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-brand-500 to-indigo-700 shadow-glow-brand flex items-center justify-center text-2xl">👥</div>
+            <h1 className="text-3xl font-black mb-3">
+              <span className="text-gradient-animated">Cricket Teams</span>
+            </h1>
+            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+              Explore the top ten ICC-ranked teams — squads, captains, form, and World Cup pedigree.
             </p>
           </div>
-          
+
           {isLoading ? (
-            <div className="flex justify-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
-            </div>
-          ) : error ? (
-            <div className="text-center text-red-500 p-8 bg-white rounded-lg shadow-md">
-              <p>{error}</p>
-              <button 
-                className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                onClick={() => window.location.reload()}
-              >
-                Retry
-              </button>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[0, 1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="card overflow-hidden">
+                  <div className="skeleton h-28 rounded-none" />
+                  <div className="p-6 space-y-3">
+                    <div className="skeleton h-5 w-32" />
+                    <div className="skeleton h-4 w-full" />
+                    <div className="skeleton h-4 w-3/4" />
+                    <div className="skeleton h-9 w-full rounded-xl" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {teams.map(team => (
-                <div key={team.id} className="bg-white rounded-lg overflow-hidden shadow-lg transition-transform hover:scale-105">
-                  <div className="h-48 overflow-hidden">
-                    <img 
-                      src={team.logo} 
-                      alt={`${team.name} Cricket Team`} 
-                      className="w-full h-full object-cover"
-                    />
+              {TEAMS.map((team, i) => (
+                <div key={team.id} className="card overflow-hidden hover:-translate-y-1 hover:shadow-glow-brand transition-all duration-300 animate-fade-in-up" style={{ animationDelay: `${i * 0.05}s` }}>
+                  {/* Team banner */}
+                  <div className={`relative h-28 bg-gradient-to-br ${team.gradient} overflow-hidden`}>
+                    <div className="absolute inset-0 opacity-[0.12]" style={{ backgroundImage: 'radial-gradient(rgba(255,255,255,0.6) 1px, transparent 1px)', backgroundSize: '18px 18px' }} />
+                    <div className="absolute -right-4 -bottom-6 text-8xl opacity-90 select-none" role="img" aria-label={team.name}>{team.flag}</div>
+                    <div className="absolute top-3 left-4 flex items-center gap-2">
+                      <span className="badge bg-white/15 text-white backdrop-blur-sm">{team.short}</span>
+                      <span className="badge bg-amber-400/90 text-amber-950">#{team.ranking}</span>
+                    </div>
                   </div>
-                  <div className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-xl font-bold">{team.name}</h3>
-                      <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded">
-                        ICC Rank: #{team.ranking}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm text-gray-600">
-                      <div>
-                        <p>Captain: {team.captain}</p>
-                        <p>Coach: {team.coach}</p>
-                      </div>
-                      <div className="text-right">
-                        <p>Test Matches: {team.matches}</p>
-                        <p>World Cups: {team.worldCups}</p>
+                  <div className="p-5">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-lg font-black text-gray-800 dark:text-gray-100">{team.name}</h3>
+                      <div className="flex gap-1" title="Recent form">
+                        {team.form.map((r, j) => (
+                          <span key={j} className={`w-5 h-5 rounded text-[10px] font-black flex items-center justify-center ${r === 'W' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400' : 'bg-rose-100 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400'}`}>{r}</span>
+                        ))}
                       </div>
                     </div>
-                    <button className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded transition-colors">
+                    <div className="text-sm text-gray-500 dark:text-gray-400 space-y-1 mb-4">
+                      <p>🏆 Captain: <b className="text-gray-700 dark:text-gray-300">{team.captain}</b></p>
+                      <p>📋 Coach: <b className="text-gray-700 dark:text-gray-300">{team.coach}</b></p>
+                      <p>🥇 World Cups: <b className="text-gray-700 dark:text-gray-300 tnum">{team.worldCups}</b> &bull; Rating: <b className="text-gray-700 dark:text-gray-300 tnum">{team.rating}</b></p>
+                    </div>
+                    <Link to={`/teams/${team.id}`} className="btn-primary w-full !py-2 text-sm">
                       View Team Details
-                    </button>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                    </Link>
                   </div>
                 </div>
               ))}
@@ -169,8 +77,6 @@ const TeamsPage = () => {
           )}
         </div>
       </main>
-      
-      <Footer />
     </div>
   );
 };

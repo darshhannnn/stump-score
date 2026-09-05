@@ -6,7 +6,7 @@ const LiveMatchesList = ({ matches }) => {
     <div id="live-matches" className="container mx-auto py-4 scroll-mt-24">
       <h2 className="text-xl font-bold mb-4">Live Matches</h2>
       {matches.length === 0 ? (
-        <div className="bg-gray-100 p-4 rounded-lg text-center">
+        <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg text-center">
           <p>No live matches at the moment</p>
         </div>
       ) : (

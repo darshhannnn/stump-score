@@ -35,13 +35,19 @@ mongoose.connect(process.env.MONGO_URI)
 app.use('/api/users', userRoutes);
 app.use('/api/payments', paymentRoutes);
 
+// Unknown API routes return JSON 404 instead of the SPA shell
+app.use('/api', (req, res) => {
+  res.status(404).json({ message: `API route not found: ${req.method} ${req.originalUrl}` });
+});
+
 // Serve static assets in production
 if (process.env.NODE_ENV === 'production') {
   // Set static folder
-  app.use(express.static('build'));
-  
-  app.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, 'build', 'index.html'));
+  app.use(express.static(path.join(__dirname, 'build')));
+
+  // Terminal middleware (Express 5 removed the '*' wildcard route syntax)
+  app.use((req, res) => {
+    res.sendFile(path.join(__dirname, 'build', 'index.html'));
   });
 }
 

@@ -15,18 +15,18 @@ const MatchAnalysis = ({ data, probability, teams }) => {
   if (!data || !probability || !teams) return null;
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6 mt-8">
-      <h3 className="text-2xl font-bold text-blue-900 mb-6 flex items-center">
+    <div className="card p-6 mt-8">
+      <h3 className="text-2xl font-bold text-blue-900 dark:text-blue-300 mb-6 flex items-center">
         <span className="mr-2">📊</span> Advanced Match Analysis
       </h3>
 
       {/* Win Probability Bar */}
       <div className="mb-10">
         <div className="flex justify-between text-sm font-semibold mb-2">
-          <span className="text-blue-700">{teams.team1.name} ({probability.team1}%)</span>
-          <span className="text-yellow-600">{teams.team2.name} ({probability.team2}%)</span>
+          <span className="text-blue-700 dark:text-blue-300">{teams.team1.name} ({probability.team1}%)</span>
+          <span className="text-yellow-600 dark:text-amber-400">{teams.team2.name} ({probability.team2}%)</span>
         </div>
-        <div className="w-full h-4 bg-gray-200 rounded-full overflow-hidden flex shadow-inner">
+        <div className="w-full h-4 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden flex shadow-inner">
           <div 
             className="h-full bg-blue-600 transition-all duration-1000 ease-in-out"
             style={{ width: `${probability.team1}%` }}
@@ -36,16 +36,16 @@ const MatchAnalysis = ({ data, probability, teams }) => {
             style={{ width: `${probability.team2}%` }}
           />
         </div>
-        <p className="text-xs text-gray-500 mt-2 text-center italic">
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center italic">
           * Win probability calculated based on current run rate and wickets remaining
         </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Run Progression (Worm Graph) */}
-        <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-          <h4 className="font-bold text-gray-700 mb-4 flex items-center">
-            <span className="mr-2 text-blue-500">📈</span> Run Progression (Worm)
+        <div className="bg-gray-50 dark:bg-gray-800/60 p-4 rounded-xl border border-gray-100 dark:border-gray-800">
+          <h4 className="font-bold text-gray-700 dark:text-gray-200 mb-4 flex items-center">
+            <span className="mr-2 text-blue-500 dark:text-blue-400">📈</span> Run Progression (Worm)
           </h4>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
@@ -88,9 +88,9 @@ const MatchAnalysis = ({ data, probability, teams }) => {
         </div>
 
         {/* Run Rate Comparison */}
-        <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-          <h4 className="font-bold text-gray-700 mb-4 flex items-center">
-            <span className="mr-2 text-green-500">📉</span> Run Rate Comparison
+        <div className="bg-gray-50 dark:bg-gray-800/60 p-4 rounded-xl border border-gray-100 dark:border-gray-800">
+          <h4 className="font-bold text-gray-700 dark:text-gray-200 mb-4 flex items-center">
+            <span className="mr-2 text-green-500 dark:text-emerald-400">📉</span> Run Rate Comparison
           </h4>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">

@@ -9,12 +9,12 @@ const LiveCommentary = ({ commentary }) => {
   if (!commentary || commentary.length === 0) return null;
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6 mt-8 overflow-hidden relative">
+    <div className="card p-6 mt-8 overflow-hidden relative">
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-2xl font-bold text-blue-900 flex items-center">
+        <h3 className="text-2xl font-bold text-blue-900 dark:text-blue-300 flex items-center">
           <span className="mr-2">🎙️</span> Live AI Commentary
         </h3>
-        <span className="bg-purple-100 text-purple-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest flex items-center">
+        <span className="bg-purple-100 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest flex items-center">
           <span className="w-2 h-2 bg-purple-500 rounded-full mr-2 animate-ping" />
           Powered by AI
         </span>
@@ -26,21 +26,21 @@ const LiveCommentary = ({ commentary }) => {
             key={index} 
             className={`p-4 rounded-xl border-l-4 transition-all duration-500 hover:scale-[1.01] ${
               index === 0 
-                ? 'bg-blue-50 border-blue-500 shadow-sm' 
-                : 'bg-gray-50 border-gray-200 opacity-80 hover:opacity-100'
+                ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-500 shadow-sm' 
+                : 'bg-gray-50 dark:bg-gray-800/60 border-gray-200 dark:border-gray-800 opacity-80 hover:opacity-100'
             }`}
           >
             <div className="flex items-center mb-2">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+              <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
                 {index === 0 ? 'Just now' : `${index * 2} mins ago`}
               </span>
               {index === 0 && (
-                <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-600 text-[10px] font-bold rounded uppercase">
+                <span className="ml-2 px-2 py-0.5 bg-blue-100 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 text-[10px] font-bold rounded uppercase">
                   Latest Event
                 </span>
               )}
             </div>
-            <p className={`text-gray-800 leading-relaxed ${index === 0 ? 'font-medium text-lg' : 'text-base'}`}>
+            <p className={`text-gray-800 dark:text-gray-100 leading-relaxed ${index === 0 ? 'font-medium text-lg' : 'text-base'}`}>
               {text}
             </p>
           </div>

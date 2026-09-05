@@ -175,10 +175,40 @@ router.get('/subscription', auth, async (req, res) => {
   try {
     const user = req.user;
 
+    // Derive the active plan from the most recent payment (falls back to monthly)
+    const history = user.paymentHistory || [];
+    const lastPayment = history.length > 0 ? history[history.length - 1] : null;
+    const planType = lastPayment?.planType || 'monthly';
+
+    const plan = planType === 'annual'
+      ? { id: 'annual', name: 'Annual', description: 'Annual premium subscription (Save 67%)', price: 200, currency: '₹', period: 'year' }
+      : { id: 'monthly', name: 'Monthly', description: 'Monthly premium subscription', price: 50, currency: '₹', period: 'month' };
+
+    const now = new Date();
+    const expired = user.premiumUntil && new Date(user.premiumUntil) < now;
+
     res.json({
       isPremium: user.isPremium,
+      status: user.isPremium && !expired ? 'active' : 'cancelled',
+      startDate: lastPayment?.date || user.createdAt,
+      nextBillingDate: user.premiumUntil,
       premiumUntil: user.premiumUntil,
-      paymentHistory: user.paymentHistory
+      autoRenew: user.isPremium,
+      discount: planType === 'annual' ? 400 : 0,
+      plan,
+      paymentMethod: {
+        type: 'Razorpay',
+        brand: 'Razorpay',
+        last4: '0000',
+        expiryMonth: '--',
+        expiryYear: '----'
+      },
+      billingHistory: history.map(p => ({
+        date: p.date,
+        description: `${p.planType === 'annual' ? 'Annual' : 'Monthly'} Premium Subscription`,
+        amount: `₹${p.amount}`,
+        status: 'paid'
+      }))
     });
   } catch (error) {
     console.error('Subscription check error:', error);

@@ -60,24 +60,24 @@ const RazorpayCheckout = ({ onSuccess, onCancel, selectedPlan = PAYMENT_PLANS.MO
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">Complete Your Subscription</h2>
+    <div className="card p-6">
+      <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-6">Complete Your Subscription</h2>
       
       {error && (
-        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">
+        <div className="mb-4 p-3 bg-red-100 dark:bg-rose-500/10 text-red-700 dark:text-rose-400 rounded-md">
           {error}
         </div>
       )}
       
-      <div className="mb-6 p-4 bg-blue-50 rounded-md">
+      <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-500/10 rounded-md">
         <h3 className="text-lg font-semibold mb-2">{selectedPlan.name} Plan</h3>
-        <p className="text-gray-600 mb-1">{selectedPlan.description}</p>
+        <p className="text-gray-600 dark:text-gray-400 mb-1">{selectedPlan.description}</p>
         <div className="flex items-baseline">
-          <span className="text-2xl font-bold text-blue-600">{selectedPlan.currency}{selectedPlan.price}</span>
-          <span className="text-gray-500 ml-1">/{selectedPlan.period}</span>
+          <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">{selectedPlan.currency}{selectedPlan.price}</span>
+          <span className="text-gray-500 dark:text-gray-400 ml-1">/{selectedPlan.period}</span>
         </div>
         {selectedPlan.trialDays > 0 && (
-          <p className="mt-2 text-sm text-green-600 font-medium">
+          <p className="mt-2 text-sm text-green-600 dark:text-emerald-400 font-medium">
             Includes {selectedPlan.trialDays}-day free trial
           </p>
         )}
@@ -85,7 +85,7 @@ const RazorpayCheckout = ({ onSuccess, onCancel, selectedPlan = PAYMENT_PLANS.MO
       
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
             Full Name
           </label>
           <input
@@ -95,12 +95,12 @@ const RazorpayCheckout = ({ onSuccess, onCancel, selectedPlan = PAYMENT_PLANS.MO
             value={billingInfo.name}
             onChange={handleInputChange}
             required
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
         
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
             Email Address
           </label>
           <input
@@ -110,12 +110,12 @@ const RazorpayCheckout = ({ onSuccess, onCancel, selectedPlan = PAYMENT_PLANS.MO
             value={billingInfo.email}
             onChange={handleInputChange}
             required
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
         
         <div>
-          <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
             Phone Number
           </label>
           <input
@@ -125,7 +125,7 @@ const RazorpayCheckout = ({ onSuccess, onCancel, selectedPlan = PAYMENT_PLANS.MO
             value={billingInfo.phone}
             onChange={handleInputChange}
             required
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
         
@@ -153,7 +153,7 @@ const RazorpayCheckout = ({ onSuccess, onCancel, selectedPlan = PAYMENT_PLANS.MO
           </button>
         </div>
         
-        <p className="text-xs text-gray-500 text-center mt-4">
+        <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-4">
           By clicking the button above, you agree to our Terms of Service and authorize StumpScore to charge your payment method
         </p>
       </form>
