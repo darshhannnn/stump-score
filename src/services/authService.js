@@ -2,6 +2,7 @@
 // Supports both MongoDB and Firebase Google authentication
 import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider } from '../firebase/firebase';
+import { API_BASE_URL } from './apiConfig';
 
 const jsonRequest = async (url, { method = 'GET', headers = {}, body } = {}) => {
   const response = await fetch(url, {
@@ -27,7 +28,6 @@ const jsonRequest = async (url, { method = 'GET', headers = {}, body } = {}) => 
 };
 
 // API URLs
-const API_BASE_URL = 'http://localhost:5000/api';
 const API_URLS = {
   register: `${API_BASE_URL}/users/register`,
   login: `${API_BASE_URL}/users/login`,
@@ -143,6 +143,141 @@ const authService = {
     return merged;
   },
 
+  // Expose auth headers for other services (comments, cloud sync, etc.)
+  authHeaders: () => getAuthHeaders(),
+
+  // ===== Account & preferences =====
+
+  // Update preferences (theme, notification toggles, favorite team)
+  updatePreferences: async (preferences) => {
+    try {
+      const response = await jsonRequest(`${API_BASE_URL}/users/preferences`, {
+        method: 'PATCH',
+        headers: getAuthHeaders(),
+        body: preferences
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to update preferences');
+    }
+  },
+
+  // Change password (requires the current password)
+  changePassword: async (currentPassword, newPassword) => {
+    try {
+      const response = await jsonRequest(`${API_BASE_URL}/users/change-password`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: { currentPassword, newPassword }
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to change password');
+    }
+  },
+
+  // Request a password reset link
+  forgotPassword: async (email) => {
+    try {
+      const response = await jsonRequest(`${API_BASE_URL}/users/forgot-password`, {
+        method: 'POST',
+        body: { email }
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to request password reset');
+    }
+  },
+
+  // Consume a reset token and set a new password
+  resetPassword: async (token, password) => {
+    try {
+      const response = await jsonRequest(`${API_BASE_URL}/users/reset-password`, {
+        method: 'POST',
+        body: { token, password }
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to reset password');
+    }
+  },
+
+  // Delete the account and all associated server-side data
+  deleteAccount: async () => {
+    try {
+      const response = await jsonRequest(`${API_BASE_URL}/users/account`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+      localStorage.removeItem(AUTH_TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to delete account');
+    }
+  },
+
+  // ===== Favorites =====
+
+  getFavorites: async () => {
+    try {
+      const response = await jsonRequest(`${API_BASE_URL}/users/favorites`, {
+        headers: getAuthHeaders()
+      });
+      return response.data.favorites || [];
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to load favorites');
+    }
+  },
+
+  toggleFavorite: async (teamId) => {
+    try {
+      const response = await jsonRequest(`${API_BASE_URL}/users/favorites/${encodeURIComponent(teamId)}`, {
+        method: 'POST',
+        headers: getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to update favorites');
+    }
+  },
+
+  // ===== Notifications =====
+
+  getNotifications: async (page = 1, limit = 15) => {
+    try {
+      const response = await jsonRequest(`${API_BASE_URL}/notifications?page=${page}&limit=${limit}`, {
+        headers: getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to load notifications');
+    }
+  },
+
+  markNotificationRead: async (id) => {
+    try {
+      const response = await jsonRequest(`${API_BASE_URL}/notifications/${id}/read`, {
+        method: 'POST',
+        headers: getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to update notification');
+    }
+  },
+
+  markAllNotificationsRead: async () => {
+    try {
+      const response = await jsonRequest(`${API_BASE_URL}/notifications/read-all`, {
+        method: 'POST',
+        headers: getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to update notifications');
+    }
+  },
 
   // Check if the user is premium
   isPremiumUser: () => {

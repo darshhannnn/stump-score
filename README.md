@@ -59,9 +59,30 @@ node tests/e2e-smoke-test.js
 ## Environment variables
 Copy `.env.example` to `.env` and fill in your values. See `AGENT_INSTRUCTIONS.md` for the full list and architecture notes.
 
+## Backend API (v2)
+
+The backend is a full-featured Express 5 API — see the `server/` folder for the structure:
+
+| Area | Endpoints |
+|---|---|
+| Health/Stats | `GET /api/health`, `GET /api/stats` |
+| Auth | register, login, google, profile (GET/PUT), preferences, change-password, forgot/reset-password, delete account |
+| Favorites | GET/POST `/api/users/favorites[/:teamId]` |
+| Payments | create-order (real Razorpay SDK), verify (HMAC signature check), history, orders, webhook |
+| Subscription | GET + cancel / reactivate / change-plan |
+| Cricket proxy | `/api/cricket/matches`, `/match/:id`, `/search?q=` — cached server-side, API keys never leave the backend |
+| Predictions | `/api/cricket/predictions/:matchId` — **premium-gated** |
+| Cloud game sync | `/api/games` CRUD (Scorekeeper save/load across devices) |
+| Match comments | `/api/matches/:matchId/comments` — public read, auth write, spam-limited |
+| Notifications | `/api/notifications` list / read / read-all |
+
+Includes: helmet security, compression, morgan logging, tiered rate limiting,
+in-memory TTL cache with stale-while-error, order audit trail, welcome/premium
+notifications, graceful shutdown, and JSON 404/error handlers.
+
 ## Tech stack
 - **Frontend**: React 18 (CRA), Tailwind CSS 3, React Router 6, Recharts, Firebase Auth
-- **Backend**: Express 5, MongoDB (Mongoose 8), JWT + bcrypt, Razorpay SDK
+- **Backend**: Express 5, MongoDB (Mongoose 8), JWT + bcrypt, Razorpay SDK, helmet/morgan/compression/express-rate-limit
 
 ## License
 MIT - Free for all!

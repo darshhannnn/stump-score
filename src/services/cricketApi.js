@@ -1,8 +1,20 @@
 import { scrapeLiveMatches, scrapeMatchDetails } from './cricketScraper';
 import { RAPID_API_CONFIG } from './rapidApiConfig';
+import { API_BASE_URL } from './apiConfig';
 
-// ===== PRIMARY: CricAPI (free: 100 req/day) =====
-// Key is configured via REACT_APP_CRICAPI_KEY in .env
+// ===== PRIMARY: Our own backend proxy (hides API keys server-side, cached) =====
+
+const fetchBackend = async (path) => {
+  const res = await fetch(`${API_BASE_URL}/cricket${path}`);
+  if (!res.ok) throw new Error(`Backend API failed: ${res.status}`);
+  const payload = await res.json();
+  if (!payload.success || !payload.data) throw new Error('Backend returned no data');
+  return payload.data;
+};
+
+// ===== FALLBACK: direct CricAPI (free: 100 req/day) =====
+// Key is configured via REACT_APP_CRICAPI_KEY in .env - only used if the
+// backend proxy is unreachable (e.g. API server not running in dev).
 const CRICAPI_KEY = process.env.REACT_APP_CRICAPI_KEY || '8c428c05-056e-4d3b-9471-24956c550f47';
 const CRICAPI_URL = 'https://api.cricapi.com/v1';
 
@@ -130,6 +142,18 @@ const mapCricAPIMatch = (match) => {
 // ===== Main Fetch Function =====
 
 export const fetchCurrentMatches = async () => {
+  // Source 0: Our backend proxy (cached, key stays server-side)
+  try {
+    logInfo('Fetching from backend proxy...');
+    const matches = await fetchBackend('/matches');
+    if (matches.length > 0) {
+      logInfo(`Backend: ${matches.length} matches`);
+      return matches;
+    }
+  } catch (e) {
+    logError('Backend proxy failed:', e.message);
+  }
+
   // Source 1: CricAPI
   try {
     logInfo('Fetching from CricAPI...');
@@ -184,6 +208,15 @@ export const fetchCurrentMatches = async () => {
 };
 
 export const fetchMatchDetails = async (matchId) => {
+  // Source 0: Our backend proxy
+  try {
+    logInfo(`Fetching match details from backend: ${matchId}`);
+    const match = await fetchBackend(`/match/${matchId}`);
+    if (match) return match;
+  } catch (e) {
+    logError('Backend match details failed:', e.message);
+  }
+
   // Source 1: CricAPI
   try {
     logInfo(`Fetching match details from CricAPI: ${matchId}`);

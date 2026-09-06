@@ -1,5 +1,6 @@
 // Payment service using Razorpay integration with MongoDB backend
 import { RAZORPAY_CONFIG } from './razorpayConfig';
+import { API_BASE_URL } from './apiConfig';
 
 // Helper to make JSON requests
 const jsonRequest = async (url, { method = 'GET', headers = {}, body } = {}) => {
@@ -26,7 +27,6 @@ const jsonRequest = async (url, { method = 'GET', headers = {}, body } = {}) => 
 };
 
 // API URLs
-const API_BASE_URL = 'http://localhost:5000/api';
 const PAYMENT_API = `${API_BASE_URL}/payments`;
 
 // Helper to load Razorpay script

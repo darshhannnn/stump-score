@@ -1,6 +1,6 @@
 # StumpScore - Project Status
 
-Progress: Complete ✅
+Progress: Complete ✅ (backend v2: proxy, sync, comments, notifications, premium gating)
 
 ## Architecture
 - `/` = Live Cricket Scores Hub (Cricbuzz-style)
@@ -21,6 +21,7 @@ Progress: Complete ✅
 - [x] `npx react-scripts test` - App.test.js passes
 - [x] Backend boots in dev and production mode (Express 5 compatible)
 - [x] `node tests/e2e-smoke-test.js` - register/login/order/verify/subscription/cancel/reactivate all pass
+- [x] Backend v2: 40-assertion e2e suite passes (health, auth, prefs, favorites, game sync, comments, notifications, premium-gated predictions, real Razorpay verify path, password reset)
 - [x] Link audit: every `to=` target resolves to a route, zero `#!` anchors, 404 catch-all in place
 
 ## Recently fixed

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import MatchDetail from '../components/MatchDetail';
+import MatchComments from '../components/MatchComments';
 import { fetchMatchDetails } from '../services/cricketApi';
 
 const MatchDetailsPage = () => {
@@ -46,6 +47,7 @@ const MatchDetailsPage = () => {
             {/* Main match details */}
             <div className="lg:col-span-2">
               <MatchDetail matchId={matchId} />
+              <MatchComments matchId={matchId} />
             </div>
             
             {/* Sidebar */}

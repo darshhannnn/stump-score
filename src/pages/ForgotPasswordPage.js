@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import authService from '../services/authService';
 
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState('');
   const [error, setError] = useState(null);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  // Development convenience: the API returns the reset token in non-production
+  // so the full flow is testable without an email service
+  const [devToken, setDevToken] = useState(null);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -16,11 +20,17 @@ const ForgotPasswordPage = () => {
     }
     setError(null);
     setSending(true);
-    // Simulated reset flow — in production this calls a backend endpoint that
-    // emails a time-limited reset token for this address
-    await new Promise((r) => setTimeout(r, 900));
-    setSending(false);
-    setSent(true);
+    try {
+      const response = await authService.forgotPassword(email);
+      setDevToken(response.resetToken || null);
+      setSent(true);
+    } catch (err) {
+      // Backend unreachable - show the generic success state so the UX is unchanged
+      console.warn('Forgot password API error:', err.message);
+      setSent(true);
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -84,6 +94,17 @@ const ForgotPasswordPage = () => {
                   If an account exists for <span className="font-semibold text-gray-800 dark:text-gray-200">{email}</span>, a password reset link is on its way.
                 </p>
                 <p className="text-gray-400 dark:text-gray-500 text-xs mb-6">The link expires in 30 minutes. Don't forget to check spam.</p>
+                {devToken && (
+                  <div className="mb-6 p-3 rounded-xl bg-amber-50 dark:bg-amber-500/10 text-left">
+                    <p className="text-xs font-bold text-amber-700 dark:text-amber-300 mb-2">DEV MODE — reset token (in production this is emailed):</p>
+                    <Link
+                      to={`/reset-password/${devToken}`}
+                      className="text-xs text-brand-600 dark:text-brand-400 font-semibold break-all hover:underline"
+                    >
+                      Open reset link →
+                    </Link>
+                  </div>
+                )}
                 <div className="flex gap-2 justify-center">
                   <button onClick={() => navigate('/login')} className="btn-primary">Go to Login</button>
                   <button onClick={() => { setSent(false); setEmail(''); }} className="btn-ghost">Try another email</button>

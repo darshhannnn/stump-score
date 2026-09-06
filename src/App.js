@@ -25,6 +25,7 @@ import PrivacyPage from './pages/PrivacyPage';
 import TermsPage from './pages/TermsPage';
 import ContactPage from './pages/ContactPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -48,6 +49,7 @@ function AnimatedRoutes() {
       <Route path="/terms" element={<TermsPage />} />
       <Route path="/contact" element={<ContactPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
       <Route path="/match/:matchId" element={<MatchDetailsPage />} />
       <Route path="/home" element={<Navigate to="/" replace />} />
       <Route path="*" element={<NotFound />} />

@@ -1,10 +1,43 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { getTeamById, ROLE_STYLES } from '../data/teams';
+import authService from '../services/authService';
+import { useAuth } from '../contexts/AuthContext';
 
 const TeamDetailPage = () => {
   const { teamId } = useParams();
   const team = getTeamById(teamId);
+  const { isAuthenticated } = useAuth();
+  const [favorited, setFavorited] = useState(false);
+  const [favLoading, setFavLoading] = useState(false);
+
+  useEffect(() => {
+    const checkFavorite = async () => {
+      if (!isAuthenticated || !teamId) return;
+      try {
+        const favorites = await authService.getFavorites();
+        setFavorited(favorites.includes(teamId));
+      } catch {
+        // Non-blocking: favorites are a nice-to-have
+      }
+    };
+    checkFavorite();
+  }, [isAuthenticated, teamId]);
+
+  const toggleFavorite = async () => {
+    if (!isAuthenticated || favLoading) return;
+    setFavLoading(true);
+    const prev = favorited;
+    setFavorited(!prev); // optimistic
+    try {
+      const result = await authService.toggleFavorite(teamId);
+      setFavorited(result.favorited);
+    } catch {
+      setFavorited(prev); // revert on failure
+    } finally {
+      setFavLoading(false);
+    }
+  };
 
   if (!team) {
     return (
@@ -47,6 +80,21 @@ const TeamDetailPage = () => {
               <div className="flex items-center gap-2.5 flex-wrap mb-1.5">
                 <span className="badge bg-white/15 text-white backdrop-blur-sm">{team.short}</span>
                 <span className="badge bg-amber-400/90 text-amber-950">#{team.ranking} ICC Ranked</span>
+                {isAuthenticated && (
+                  <button
+                    onClick={toggleFavorite}
+                    disabled={favLoading}
+                    className={`badge transition-all duration-200 active:scale-90 ${
+                      favorited
+                        ? 'bg-rose-500 text-white shadow-glow-rose'
+                        : 'bg-white/15 text-white hover:bg-white/25 backdrop-blur-sm'
+                    }`}
+                    title={favorited ? 'Remove from favorites' : 'Add to favorites'}
+                  >
+                    <span className={favorited ? 'scale-110' : ''}>{favorited ? '♥' : '♡'}</span>
+                    {favorited ? 'Favorited' : 'Favorite'}
+                  </button>
+                )}
               </div>
               <h1 className="text-3xl md:text-5xl font-black tracking-tight">{team.name}</h1>
               <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm text-white/85">

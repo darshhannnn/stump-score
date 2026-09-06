@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import PlayerCard from '../components/PlayerCard';
 import ScoreControls from '../components/ScoreControls';
 import { createNewGame, updateScore as updateGameScore, undoLastMove, newRound as advanceRound, resetGame as resetGameState, isGameOver, getWinners } from '../utils/gameLogic';
 import { saveGame, loadGame, getRecentGames, deleteGame } from '../utils/gameStorage';
+import cloudSync from '../services/cloudSync';
+import { useAuth } from '../contexts/AuthContext';
 
 const ScorekeeperPage = () => {
   const [game, setGame] = useState(() => {
@@ -19,6 +22,8 @@ const ScorekeeperPage = () => {
   const [showShareModal, setShowShareModal] = useState(false);
   const [shareUrl, setShareUrl] = useState('');
   const [copied, setCopied] = useState(false);
+  const { isAuthenticated } = useAuth();
+  const [syncState, setSyncState] = useState('idle'); // idle | syncing | synced | error
 
   useEffect(() => {
     saveGame(game);
@@ -97,6 +102,19 @@ const ScorekeeperPage = () => {
       setTimeout(() => setCopied(false), 2000);
     } catch {
       setCopied(false);
+    }
+  };
+
+  // Cloud sync: push the current game to the user's account
+  const handleCloudSync = async () => {
+    setSyncState('syncing');
+    try {
+      await cloudSync.pushGame(game);
+      setSyncState('synced');
+      setTimeout(() => setSyncState('idle'), 2500);
+    } catch {
+      setSyncState('error');
+      setTimeout(() => setSyncState('idle'), 2500);
     }
   };
 
@@ -238,6 +256,27 @@ const ScorekeeperPage = () => {
             </svg>
             Share Game
           </button>
+          {isAuthenticated ? (
+            <button
+              onClick={handleCloudSync}
+              disabled={syncState === 'syncing'}
+              className={`btn-ghost !py-2.5 text-sm ${
+                syncState === 'synced' ? '!border-emerald-400 !text-emerald-600 dark:!text-emerald-400' : ''
+              } ${syncState === 'error' ? '!border-rose-400 !text-rose-600 dark:!text-rose-400' : ''}`}
+              title="Save this game to your account"
+            >
+              {syncState === 'syncing' ? (
+                <span className="animate-spin inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full" />
+              ) : (
+                '☁️'
+              )}
+              {syncState === 'synced' ? 'Synced!' : syncState === 'error' ? 'Sync failed' : 'Cloud Sync'}
+            </button>
+          ) : (
+            <Link to="/login" className="btn-ghost !py-2.5 text-sm" title="Log in to sync games across devices">
+              ☁️ Cloud Sync
+            </Link>
+          )}
           <button
             onClick={() => { refreshSavedGames(); setShowSavedGames(!showSavedGames); }}
             className="btn-ghost !py-2.5 text-sm"
