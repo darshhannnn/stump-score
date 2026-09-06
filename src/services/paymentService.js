@@ -1,5 +1,5 @@
 // Payment service using Razorpay integration with MongoDB backend
-import { RAZORPAY_CONFIG } from './razorpayConfig';
+import { RAZORPAY_CONFIG, resolveKeyId } from './razorpayConfig';
 import { API_BASE_URL } from './apiConfig';
 
 // Helper to make JSON requests
@@ -124,9 +124,10 @@ const paymentService = {
     const amountInPaise = plan.price * 100;
     
     // Return a promise that resolves when payment is complete
+    const keyId = await resolveKeyId();
     return new Promise((resolve, reject) => {
       const options = {
-        key: RAZORPAY_CONFIG.key_id,
+        key: keyId,
         amount: amountInPaise,
         currency: plan.currency || 'INR',
         name: RAZORPAY_CONFIG.name,

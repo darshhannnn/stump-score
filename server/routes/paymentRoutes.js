@@ -26,6 +26,21 @@ if (config.razorpay.keyId && config.razorpay.keySecret) {
 const hmac = (secret, payload) =>
   crypto.createHmac('sha256', secret).update(payload).digest('hex');
 
+// @route   GET /api/payments/config
+// @desc    Public checkout configuration (publishable key id + branding)
+// @access  Public
+router.get('/config', (req, res) => {
+  res.json({
+    success: true,
+    enabled: Boolean(config.razorpay.keyId),
+    keyId: config.razorpay.keyId || null,
+    currency: 'INR',
+    name: 'StumpScore',
+    description: 'Premium Cricket Analytics Subscription',
+    theme: '#2563eb',
+  });
+});
+
 // @route   POST /api/payments/create-order
 // @desc    Create a Razorpay order (real SDK if configured, mock otherwise)
 // @access  Private

@@ -39,7 +39,9 @@ const assert = (cond, label) => {
 
   const server = spawn(process.execPath, ['server.js'], {
     cwd: require('path').resolve(__dirname, '..'),
-    env: { ...process.env, MONGO_URI: uri, JWT_SECRET: 'test-secret', PORT: String(PORT) },
+    // DEV_SKIP_VERIFY is forced on for tests so the suite can exercise the
+    // payment flow without completing a real Razorpay transaction.
+    env: { ...process.env, MONGO_URI: uri, JWT_SECRET: 'test-secret', PORT: String(PORT), RAZORPAY_DEV_SKIP_VERIFY: 'true' },
     stdio: ['ignore', 'pipe', 'pipe']
   });
   server.stdout.on('data', d => process.stdout.write(`[server] ${d}`));
@@ -158,7 +160,18 @@ const assert = (cond, label) => {
     res = await request('/users/login', { method: 'POST', body: { email: 'smoke@test.com', password: 'newpassword123' } });
     assert(res.status === 200, 'login works with new password');
 
+    // ===== Google auth endpoint =====
+    res = await request('/users/google', { method: 'POST', body: { name: 'Google User', email: 'google.user@gmail.com', googleId: 'gid-123', profilePicture: 'https://example.com/pic.png' } });
+    assert(res.status === 200 && res.data.token && res.data.isPremium === false, 'google auth creates user + returns token');
+    const googleId = res.data._id;
+
+    res = await request('/users/google', { method: 'POST', body: { name: 'Google User', email: 'google.user@gmail.com', googleId: 'gid-123' } });
+    assert(res.status === 200 && res.data._id === googleId, 'google auth upserts (same user on re-login)');
+
     // ===== Payments & subscription =====
+    res = await request('/payments/config');
+    assert(res.status === 200 && res.data.enabled === true && String(res.data.keyId).startsWith('rzp_'), 'payments config exposes publishable key');
+
     res = await request('/payments/create-order', { method: 'POST', token, body: { amount: 50, currency: 'INR', planType: 'monthly' } });
     assert(res.status === 200 && res.data.id, 'create-order returns order id');
     const orderId = res.data.id;

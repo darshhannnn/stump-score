@@ -1,7 +1,7 @@
 // Authentication service
 // Supports both MongoDB and Firebase Google authentication
 import { signInWithPopup } from 'firebase/auth';
-import { auth, googleProvider } from '../firebase/firebase';
+import { auth, googleProvider, isFirebaseConfigured } from '../firebase/firebase';
 import { API_BASE_URL } from './apiConfig';
 
 const jsonRequest = async (url, { method = 'GET', headers = {}, body } = {}) => {
@@ -326,21 +326,34 @@ const authService = {
   // Google authentication
   loginWithGoogle: async () => {
     try {
-      // Try to use real Firebase Google auth if credentials are set up
+      // Try real Firebase Google auth only when credentials are configured;
+      // otherwise go straight to the demo sign-in (still issues a real JWT
+      // from our backend so the whole app flow works).
       let googleUser;
-      try {
-        const result = await signInWithPopup(auth, googleProvider);
-        googleUser = {
-          name: result.user.displayName,
-          email: result.user.email,
-          googleId: result.user.uid,
-          profilePicture: result.user.photoURL
-        };
-      } catch (firebaseError) {
-        console.warn('Firebase Google auth failed, using mock Google auth:', firebaseError);
-        // If Firebase auth fails, fall back to mock Google auth
+
+      if (isFirebaseConfigured) {
+        try {
+          const result = await signInWithPopup(auth, googleProvider);
+          googleUser = {
+            name: result.user.displayName,
+            email: result.user.email,
+            googleId: result.user.uid,
+            profilePicture: result.user.photoURL
+          };
+        } catch (firebaseError) {
+          if (firebaseError?.code === 'auth/popup-closed-by-user' || firebaseError?.code === 'auth/cancelled-popup-request') {
+            return { error: 'Google sign-in was cancelled' };
+          }
+          console.warn('Firebase Google auth failed, falling back to demo sign-in:', firebaseError?.code || firebaseError);
+        }
+      }
+
+      if (!googleUser) {
         const confirmAuth = window.confirm(
-          'MOCK GOOGLE AUTH: Click OK to simulate successful Google sign-in as "google.user@gmail.com", or Cancel to abort.'
+          'Google sign-in (demo mode)\n\n' +
+          'Real Google sign-in activates once Firebase credentials are added to .env ' +
+          '(REACT_APP_FIREBASE_* - see src/firebase/firebase.js for the 4-step guide).\n\n' +
+          'Continue with the demo account "google.user@gmail.com"? (OK = continue, Cancel = abort)'
         );
 
         if (!confirmAuth) {
